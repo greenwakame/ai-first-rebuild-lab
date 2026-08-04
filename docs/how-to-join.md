@@ -30,8 +30,23 @@
 - [ ] Docker Desktop
 - [ ] [mise](https://mise.jdx.dev/)
 - [ ] GitHubアカウント
+- [ ] **AIコーディングエージェントのアカウント**（下記参照）
 
-ワークショップ参加者向けの詳しい手順は [prerequisites.md](workshop/prerequisites.md) にあります。
+### AIコーディングエージェントのアカウントが必要です
+
+> [!IMPORTANT]
+> このプロジェクトはAIコーディングエージェントによる実装を前提にしています。**アカウントの費用は自己負担**です。参加を検討される際にご確認ください。
+
+**Claude Code と Codex のどちらか一方があれば十分です。** 両方は必要ありません。
+
+| | 必要なプラン | 価格 | 申込 |
+| --- | --- | --- | --- |
+| **Claude Code** | Claude Pro | **$20/月**（年払いなら $17/月） | [claude.com/pricing](https://claude.com/pricing) |
+| **Codex** | ChatGPT Plus | **$20/月** | [learn.chatgpt.com/codex/pricing](https://learn.chatgpt.com/codex/pricing) |
+
+Claude Code は [Anthropic Console](https://console.anthropic.com/) のアカウント（API課金）でも利用できます。より安価なプランや無料枠も存在しますが、それらで作業を完遂できるかは検証していません。
+
+導入手順を含む詳しい説明は [prerequisites.md](workshop/prerequisites.md) にあります。
 
 ## 招待後の流れ
 

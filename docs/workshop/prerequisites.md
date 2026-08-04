@@ -12,11 +12,43 @@
 - [ ] macOSが動作するノートPC（管理者権限があること）
 - [ ] 安定したネットワーク接続
 - [ ] GitHubアカウント
+- [ ] [**AIコーディングエージェントのアカウント**](#0-aiコーディングエージェントのアカウント)（有料。**最も見落とされやすい項目です**）
 - [ ] [1. Homebrew](#1-homebrew)
 - [ ] [2. Docker Desktop](#2-docker-desktop)
 - [ ] [3. mise](#3-mise)
 - [ ] [4. Git の認証設定](#4-git-の認証設定)
 - [ ] [5. 動作確認](#5-動作確認)
+
+## 0. AIコーディングエージェントのアカウント
+
+> [!IMPORTANT]
+> **このプロジェクトはAIコーディングエージェントによる実装を前提にしています。** アカウントがないと当日の作業ができません。**費用は自己負担**です。
+
+**Claude Code と Codex のどちらか一方があれば十分です。** 両方は必要ありません。使い慣れているほう、あるいは試してみたいほうを選んでください。
+
+| | Claude Code | Codex |
+| --- | --- | --- |
+| 必要なプラン | **Claude Pro** | **ChatGPT Plus** |
+| 価格 | **$20/月**（月払い）<br>$17/月（年払い、$200一括） | **$20/月** |
+| 申込 | [claude.com/pricing](https://claude.com/pricing) | [learn.chatgpt.com/codex/pricing](https://learn.chatgpt.com/codex/pricing) |
+| 導入 | `brew install --cask claude-code` | `curl -fsSL https://chatgpt.com/codex/install.sh \| sh` |
+
+導入後、それぞれのツールでサインインまで済ませておいてください。
+
+<details>
+<summary><b>補足: 無料プランや他の方法について</b></summary>
+
+<br>
+
+**無料プランについて。** Claude の Free プランに Claude Code は含まれません。Codex の Free プランは公式に「quick coding tasks」向けと説明されており、より安価な Go プラン（$8/月）もあります。
+
+ただし、**無料枠や下位プランでワークショップ1件分の作業を完遂できるかは検証していません。** 確実に参加したい場合は上記の有料プランを推奨します。
+
+**Claude Code はAPI課金でも利用できます。** 公式ドキュメントには「Most surfaces require a Claude subscription or Anthropic Console account」とあり、[Anthropic Console](https://console.anthropic.com/) のアカウントでも使えます。既にAPIを使っている方はそちらでも構いません。
+
+**より上位のプラン**（Claude Max、ChatGPT Pro、いずれも$100/月〜）もありますが、ワークショップには不要です。
+
+</details>
 
 ## 1. Homebrew
 
@@ -112,6 +144,14 @@ ssh -T git@github.com
 ```bash
 brew --version && docker ps && mise --version && gh auth status
 ```
+
+あわせて、導入したAIコーディングエージェントが起動しサインイン済みであることを確認してください。
+
+```bash
+claude --version
+```
+
+Codexを選んだ場合は、`codex` コマンドが起動しサインイン済みであることを確認します。
 
 ## 当日行うこと（事前準備には含みません）
 
