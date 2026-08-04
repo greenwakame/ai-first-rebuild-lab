@@ -1,0 +1,46 @@
+title: ""
+body:
+  - type: markdown
+    attributes:
+      value: |
+        プロジェクトの内容、技術構成、設計判断についての質問はこちらへどうぞ。
+
+        > [!IMPORTANT]
+        > **この投稿は公開されます。** メールアドレスなどの連絡先や、公開したくない情報は書かないでください。
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 質問
+      description: 具体的に書いていただけると回答しやすくなります。
+      placeholder: 例）ブラウザからの書き込みをすべてRust API経由にしている理由は分かりましたが、Supabase側のRLSはどこまでを担保する想定でしょうか。
+    validations:
+      required: true
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: 関連する領域
+      options:
+        - プロジェクトの目的・対象領域
+        - アーキテクチャ・技術構成
+        - 開発の進め方（AI-first・ADR・検証）
+        - 設計判断（ADR）の内容
+        - 参加方法・招待について
+        - ワークショップについて
+        - その他
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checked
+    attributes:
+      label: 確認済みの文書（任意）
+      description: 目を通した文書があれば教えてください。重複した説明を避けられます。
+      options:
+        - label: プロジェクト概要（project-overview.md）
+        - label: アーキテクチャ（architecture.md）
+        - label: 開発の進め方（development-approach.md）
+        - label: よくある質問（faq.md）
+        - label: 参加方法（how-to-join.md）
+        - label: 設計判断の記録（adr/）

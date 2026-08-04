@@ -1,0 +1,54 @@
+title: ""
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ワークショップの事前質問、当日のQ&A、環境構築で詰まった点はこちらへどうぞ。
+
+        開催概要は [ワークショップ](../blob/main/docs/workshop/README.md)、事前準備は [prerequisites.md](../blob/main/docs/workshop/prerequisites.md) を参照してください。
+
+        > [!IMPORTANT]
+        > **この投稿は公開されます。** ログの貼り付け時は、トークン、パスワード、社内のホスト名やパスなどが含まれていないか確認してください。
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 種別
+      options:
+        - 事前準備で詰まっている
+        - 当日の作業で詰まっている
+        - 開催内容についての事前質問
+        - その他
+    validations:
+      required: true
+
+  - type: textarea
+    id: detail
+    attributes:
+      label: 内容
+      description: 環境構築の問題であれば、実行したコマンドとエラーの出力を添えてください。
+      placeholder: 例）mise run doctor が docker の項目で失敗します。Docker Desktop は起動しており docker ps は通ります。
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境（任意）
+      description: 環境構築の問題の場合に記入してください。秘密情報が含まれていないことを確認してから貼り付けてください。
+      placeholder: |
+        macOS: 15.x
+        Homebrew: 4.x
+        Docker Desktop: 4.x
+        mise: 2026.x
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checked
+    attributes:
+      label: 確認事項
+      options:
+        - label: 貼り付けた内容にトークン・パスワード・秘密情報が含まれていないことを確認しました
+          required: true

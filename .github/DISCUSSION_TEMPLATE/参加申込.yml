@@ -1,0 +1,70 @@
+title: "[参加申込] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        開発への参加を希望される方は、このフォームからお知らせください。社内メンバー、有志、自己学習目的の方を区別しません。
+
+        事前に [参加方法](../blob/main/docs/how-to-join.md) をお読みください。
+
+        > [!IMPORTANT]
+        > **この投稿は公開されます。** メールアドレス、電話番号、住所、所属先の詳細など、公開したくない情報は書かないでください。連絡はGitHubアカウント経由で行います。
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 参加の動機
+      description: このプロジェクトのどこに関心を持たれたかを教えてください。
+      placeholder: 例）AIエージェントを使った開発プロセスを実際に体験してみたい。Rustで認可まわりを書いた経験がなく、業務システムでどう設計するか学びたい。
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: interests
+    attributes:
+      label: 関心のある領域
+      description: 複数選択できます。ここで選んだ内容をもとに、着手しやすいIssueをご案内します。
+      options:
+        - label: Next.js / TypeScript（UI・サーバーサイド統合）
+        - label: Rust（業務ロジック・認可・API）
+        - label: PostgreSQL / Supabase（スキーマ・認可・マイグレーション）
+        - label: CI/CD・開発基盤
+        - label: AIエージェントを使った開発プロセスそのもの
+        - label: ドキュメント・設計記録（ADR）
+    validations:
+      required: true
+
+  - type: dropdown
+    id: availability
+    attributes:
+      label: 使える時間の目安
+      description: 目安で構いません。参加を断る基準ではなく、ご案内するIssueの規模を決めるために伺っています。
+      options:
+        - 週に数時間程度
+        - 週に半日程度
+        - 週に1日以上
+        - ワークショップに参加できれば十分（継続参加は未定）
+        - まだ分からない
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: これまでの経験（任意）
+      description: 差し支えない範囲で構いません。書かなくても申込に影響しません。
+      placeholder: 例）業務ではPHPとMySQLが中心です。Rustは個人で少し触った程度です。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: 確認事項
+      options:
+        - label: 開発は非公開リポジトリで行われ、招待は段階的であることを理解しています
+          required: true
+        - label: AIが生成した差分を自分で検証する進め方であることを理解しています
+          required: true
+        - label: 行動規範を読みました
+          required: true
