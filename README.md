@@ -1,8 +1,10 @@
 # ai-first-rebuild-lab
 
-> We are rebuilding, from scratch, a business system that was previously used in-house, with Next.js, Rust, and Supabase, using an AI-first development process where coding agents implement under human-authored design decisions and review. This repository holds no code — it is the public entry point for people considering joining, and for workshop participants, before they get access to the private development repository.
+> We are rebuilding, from scratch, a business system that was previously used in-house, with Next.js, Rust, and Supabase, using an AI-first development process where coding agents implement under human-authored design decisions and review. The project doubles as hands-on workshop material, and development uses synthetic data only. This repository holds no code — it is the public entry point for people considering joining, and for workshop participants, before they get access to the private development repository.
 
-社内で過去に利用していた業務システムを、Next.js / Rust / Supabase を中心とした構成へゼロから作り直しています。特徴は、AIコーディングエージェントによる実装を前提にした開発プロセスそのものにあります。
+かつて社内で利用していた業務システムを題材に、Next.js / Rust / Supabase を中心とした構成へゼロから作り直しています。特徴は、AIコーディングエージェントによる実装を前提にした開発プロセスそのものにあります。
+
+**このプロジェクトはワークショップでの活用を主な目的にしています。** 実際に手を動かして開発プロセスを体験してもらうための題材であり、**開発で扱うのは合成データだけです。** 実在する人物の情報や、実際に運用されていたデータは使いません。
 
 ## このリポジトリは何か
 
