@@ -25,12 +25,17 @@
 
 このリポジトリのcloneは不要です。招待後に行います。事前に準備できるのは次の環境です。
 
-- [ ] macOS
-- [ ] [Homebrew](https://brew.sh/)
+- [ ] macOS、またはWindows 11 + WSL2（Ubuntu 24.04）
+- [ ] macOSの場合は [Homebrew](https://brew.sh/)
+- [ ] Windows 11の場合はWSL2とUbuntu 24.04
 - [ ] Docker Desktop
 - [ ] [mise](https://mise.jdx.dev/)
 - [ ] GitHubアカウント
 - [ ] **AIコーディングエージェントのアカウント**（下記参照）
+
+> [!NOTE]
+> WindowsはWSL2（Ubuntu 24.04）経由のみを対象とします。
+> ネイティブWindows／PowerShellでの開発手順は、このプロジェクトでは保証していません。
 
 ### AIコーディングエージェントのアカウントが必要です
 
@@ -53,12 +58,14 @@ Claude Code は [Anthropic Console](https://console.anthropic.com/) のアカウ
 | # | 手順 | コマンド |
 | --- | --- | --- |
 | 1 | collaborator招待を受け、privateリポジトリをclone | `git clone …` |
-| 2 | 必要なツールを導入 | `brew bundle` |
-| 3 | ツールチェインを固定 | `mise install` |
-| 4 | 環境を検証 | `mise run doctor` |
-| 5 | 担当するIssueについて合意 | — |
-| 6 | 実装 | — |
-| 7 | Pull Requestを提出 | — |
+| 2 | OS別の依存を導入 | macOS: `brew bundle` / WSL2: Ubuntu用事前準備 |
+| 3 | macOS専用アプリを導入 | macOSのみ: `brew bundle --file Brewfile.macos` |
+| 4 | ツールチェインを固定 | `mise install` |
+| 5 | プロジェクト依存を導入 | `mise run install` |
+| 6 | 環境を検証 | `mise run doctor` と `mise run doctor:external` |
+| 7 | 担当するIssueについて合意 | — |
+| 8 | 実装 | — |
+| 9 | Pull Requestを提出 | — |
 
 ## 求める姿勢
 
