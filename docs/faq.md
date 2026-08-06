@@ -51,7 +51,7 @@
 
 **いいえ。ワークショップは必須ではありません。**
 
-参加の入口はDiscussionsの「参加申込」です。ワークショップは、実際の進め方を短時間で体験できる**入口のひとつ**であって、唯一の経路ではありません。Discussionsでのやり取りを通じて継続的な参加意思を確認できれば、そちらからでも招待をご案内します。
+参加の入口はDiscussionsの **Apply**（参加申込）カテゴリです。ワークショップは、実際の進め方を短時間で体験できる**入口のひとつ**であって、唯一の経路ではありません。Discussionsでのやり取りを通じて継続的な参加意思を確認できれば、そちらからでも招待をご案内します。
 
 詳しくは [how-to-join.md](how-to-join.md) を参照してください。
 
@@ -109,7 +109,7 @@ Next.js（Vercel）、Rust API（Render）、Supabase（PostgreSQL / Auth / Stor
 
 <br>
 
-Discussionsの「参加申込」カテゴリへ投稿してください。段階的にアクセスをお渡しする方針です。詳しくは [how-to-join.md](how-to-join.md) を参照してください。
+Discussionsの **Apply**（参加申込）カテゴリへ投稿してください。段階的にアクセスをお渡しする方針です。詳しくは [how-to-join.md](how-to-join.md) を参照してください。
 
 </details>
 
@@ -147,7 +147,7 @@ Discussionsの「参加申込」カテゴリへ投稿してください。段階
 
 <br>
 
-Discussionsの「質問」カテゴリへ投稿してください。
+Discussionsの **Q&A** カテゴリへ投稿してください。
 
 </details>
 
