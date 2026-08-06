@@ -124,7 +124,7 @@ rg --version
 gh --version
 ```
 
-リポジトリは `/mnt/c/Users/...` 配下ではなく、`~/src` などWSL2側のLinuxファイルシステムへcloneしてください。
+リポジトリは Windows 側のファイルシステム（`/mnt/c/` 配下）ではなく、`~/src` などWSL2側のLinuxファイルシステムへcloneしてください。
 
 ```bash
 mkdir -p ~/src
