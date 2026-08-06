@@ -1,0 +1,24 @@
+title: "[TEMPLATE-TEST] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        このカテゴリは、Discussionsのフォームが機能するかを切り分けるための一時的なものです。
+        この文章が見えていれば、フォームは適用されています。
+
+  - type: dropdown
+    id: marker
+    attributes:
+      label: 判定用ドロップダウン
+      options:
+        - フォームが表示されている
+    validations:
+      required: true
+
+  - type: textarea
+    id: note
+    attributes:
+      label: 判定用テキストエリア
+      description: この欄が見えていれば、body要素も解決されています。
+    validations:
+      required: false
