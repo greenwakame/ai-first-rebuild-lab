@@ -46,6 +46,7 @@
 - [x] **TypeScript / Next.js** — サーバーサイド統合を含むUI実装
 - [x] **PostgreSQL（Supabase）** — スキーマ設計、Row Level Security、権限モデル
 - [x] **契約優先のAPI設計** — OpenAPI起点の型生成とdrift検査
+- [x] **要求トレーサビリティ** — 受け入れ条件と実装・テストを結び、ズレを検出する仕組みの設計
 - [x] **データ移行・検証設計** — 段階移行のための突合方法
 - [x] **CI/CD・デプロイ構成**
 - [x] **AIエージェント運用** — 開発プロセスへの組み込み（[development-approach.md](development-approach.md) 参照）
