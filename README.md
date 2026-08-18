@@ -89,6 +89,7 @@ flowchart LR
 - [x] **設計判断の実物**（ADR） — 元に戻しにくい判断をすべて記録したもの
 - [x] **AIエージェントへの共通指示の実物**（`AGENTS.md`）
 - [x] **再利用可能な作業手順の実物**（skills）
+- [x] **仕様とコードのズレを検出する仕組みの実物** — 要求IDの規約と、AIに整合を取らせないための規律
 - [x] **Issue着手からマージまでの実例** — 実際にクローズされたIssue1件を再現
 - [x] **アーキテクチャとサービス境界の設計思想**
 - [x] **ロードマップと現在地**
@@ -148,6 +149,7 @@ flowchart LR
 | [faq.md](docs/faq.md) | よくある質問 |
 | [adr/](docs/adr/) | 設計判断の記録 |
 | [reference/agents-md.md](docs/reference/agents-md.md) | AIエージェント向け共通指示の実物 |
+| [reference/requirements-md.md](docs/reference/requirements-md.md) | 要求IDとドリフト検出の規約の実物 |
 | [reference/skills.md](docs/reference/skills.md) | 再利用可能な作業手順の紹介 |
 | [workshop/README.md](docs/workshop/README.md) | ワークショップ開催概要 |
 | [workshop/prerequisites.md](docs/workshop/prerequisites.md) | 事前準備 |

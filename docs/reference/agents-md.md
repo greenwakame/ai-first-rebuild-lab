@@ -9,6 +9,7 @@
 - **ミッションと境界を先に固定**しています。何を作るか、どこまでが書き込み対象か、アーキテクチャ上の境界はどこかを、エージェントが毎回推測しなくて済むように明文化しています。
 - **作業手順（Working method）をGitHub Issue駆動**にしています。Issueを計画の単位にし、ブランチ命名規則、PRの書き方、メタデータ同期まで固定することで、複数のエージェント・複数の人が同じ規律で作業できるようにしています。
 - **検証基準（Validation expectations）を明文化**しています。「コードが生成されただけでは完了していない」という原則は、AIエージェントに実装を任せる以上、最も重要な歯止めです。
+- **要求トレーサビリティ（Requirement traceability）を規約に組み込んでいます。** 仕様の受け入れ条件にIDを与え、実装とテストへマーカーで結び、ズレを検出したらエージェントは**整合を取らずに停止して人へ報告する**と明記しています。「AIが仕様のほうを書き換えて辻褄を合わせる」という失敗モードへの、明示的な歯止めです。運用規約の実物は [requirements-md.md](requirements-md.md)、判断の経緯は [ADR 0023](../adr/0023-requirement-traceability-and-drift-detection.md) にあります。
 - **コードレビュー基準（Code review rules）**は、秘密情報の露出、認証・認可の突破、破壊的なデータ移行、API/スキーマの互換性破壊、信頼境界での検証漏れ、再現不能なビルド/テスト/デプロイなど、実害につながる観点を優先しています。
 
 ## 実物
@@ -55,9 +56,11 @@ These paths are the target layout. Do not invent placeholder applications merely
 ## Working method
 
 Use a GitHub issue as the unit of planned repository work. Before creating a
-branch, confirm the issue has `greenwakame` assigned plus an appropriate
-milestone and labels. Also assign an explicitly named collaborator who will do
-the work when that account has repository access. Name branches
+branch, resolve the active GitHub account with `gh api user --jq .login` and
+confirm the issue has exactly that account assigned, plus an appropriate
+milestone and labels. Do not fall back to a repository-owner account when the
+active account is missing or cannot be assigned. Confirm exactly one
+`agent:codex` or `agent:claude` routing label matches the primary agent. Name branches
 `<agent>/<issue-number>-<slug>`, where `<agent>` is `codex` or `claude`
 according to the primary agent when the branch is created. Keep that prefix if
 the work is handed off later. Write pull
@@ -68,9 +71,9 @@ until `mise run github:pr:sync-metadata -- <issue> <pr>` succeeds and the
 structured pull request metadata has been re-read.
 
 Use the acting contributor's own GitHub-associated commit identity. Never
-impersonate `greenwakame` or another collaborator; `greenwakame` remaining an
-Issue and pull request assignee records repository accountability, not commit
-authorship.
+impersonate the active account or another collaborator. The Issue and pull
+request assignee records the account currently responsible for GitHub writes;
+it does not authorize commit impersonation or replace the human merge owner.
 
 For each task:
 
@@ -83,6 +86,36 @@ For each task:
 7. Report what changed, what passed, and what remains unverified.
 
 Use `mise run <task>` as the canonical command surface once tasks exist. Until bootstrap is complete, do not invent passing commands; document missing automation instead.
+
+## Requirement traceability
+
+Requirements are the acceptance criteria of a specification, not roadmap
+bullets. `docs/features/` holds user-facing feature specifications;
+`docs/requirements/` holds cross-cutting ones. Each criterion carries a
+`REQ-<AREA>-<NNN>` identifier and one entry in
+`docs/requirements/registry.yaml`. ADR decisions use the separate
+`ADR-<NNNN>-D<n>` series. The full convention is
+[`docs/requirements/README.md`](docs/requirements/README.md); the decision is
+ADR 0023.
+
+- Every acceptance criterion in a registered specification carries an
+  identifier. Do not add an unnumbered one.
+- Link implementation and tests with a `// @req REQ-...` marker.
+- Run `mise run req:check` before opening a pull request, and
+  `mise run req:impact -- <ID>` before asking for approval of a design change.
+- Code that is not yet numbered stays out of scope. **When you change such code
+  and the change corresponds to a requirement, write the requirement and number
+  it before implementing.**
+- Do not number a requirement reverse-generated from existing code. A restated
+  implementation always matches the code and can never reveal drift, and later
+  sessions read it as a human decision.
+- Do not edit an applied migration to place a marker, and do not put one inside
+  a SQL string literal. Mark the calling code instead.
+
+**When the check reports drift, stop and report it to the user.** Do not resolve
+a finding by rewriting the specification, by lowering `status`, or by moving a
+requirement to a weaker `kind`. Those are the failure modes this exists to
+catch; the judgement belongs to the user.
 
 ## Data and security
 
