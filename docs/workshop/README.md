@@ -84,9 +84,14 @@ AIエージェントを使う開発では、**手が止まっていることが�
 
 当日お持ちいただくもの:
 
-- [ ] macOSが動作するノートPC
+- [ ] 次のいずれかが動作するノートPC（管理者権限があること）
+  - macOS
+  - Windows 11 + WSL2（Ubuntu 24.04）
 - [ ] 安定したネットワーク接続
 - [ ] [prerequisites.md](prerequisites.md) の事前準備が完了していること
+
+WindowsではWSL2（Ubuntu）内で開発コマンドを実行します。ネイティブWindows（PowerShell）での
+開発手順は対象外です。
 
 ## 質問について
 
