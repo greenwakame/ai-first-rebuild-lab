@@ -86,6 +86,29 @@
     }, every);
   }
 
+  /* The frame is sized to the diagram, so nothing needs to scroll — but the
+   * browser still reserves and paints a scrollbar, 15px of it, which reads as
+   * a stray white bar down the right edge of the embed.
+   *
+   * The diagram is same-origin, so the bar can be taken out of the embedded
+   * rendering. This changes nothing on disk: docs/diagrams/*.html is pinned by
+   * sha256 and is not touched. It is a style injected into this one framed
+   * view, and the page keeps working exactly as before when opened directly.
+   *
+   * Scrolling itself is deliberately left possible. If the height is ever a
+   * little short, a wheel still reaches the rest; only the bar is gone. */
+  function hideScrollbar() {
+    var doc;
+    try { doc = frame.contentDocument; } catch (err) { return; }
+    if (!doc || !doc.head || doc.getElementById('embed-no-scrollbar')) return;
+    var style = doc.createElement('style');
+    style.id = 'embed-no-scrollbar';
+    style.textContent =
+      'html{scrollbar-width:none;-ms-overflow-style:none;}' +
+      'html::-webkit-scrollbar{width:0;height:0;display:none;}';
+    doc.head.appendChild(style);
+  }
+
   function settle() { poll(25, 400); }
 
   /* Opening a panel or switching the diagram's theme changes its height with
@@ -102,6 +125,7 @@
     frame.loading = 'lazy';
     frame.className = 'diagram-frame';
     frame.addEventListener('load', function () {
+      hideScrollbar();
       settle();
       try {
         var d = frame.contentDocument;
