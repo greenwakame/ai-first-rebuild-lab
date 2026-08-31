@@ -828,6 +828,9 @@ h3.sub { font-size: 19px; margin: 52px 0 10px; }
  * reserve the height of one. */
 .diagram-slot.is-mounted { background: #0b1220; }
 
+/* Starting height only: the script measures the diagram and sets the real one,
+ * so the frame never carries a scrollbar of its own. This value just avoids a
+ * jump while it loads. */
 .diagram-frame {
   display: block;
   width: 100%;
