@@ -25,6 +25,19 @@ const SITE = '/ai-first-rebuild-lab/';
 /* Documents rendered on this site, by their path in the repository. Anything
  * not listed here keeps going to github.com — that is the default, not a
  * failure, and it is what keeps ADR and reference/ where they belong. */
+/* The seven documents in reading order. This is a real sequence — each one
+ * assumes the ones before it — so the position is information, not decoration,
+ * and it is what the previous/next links walk. */
+const ORDER = [
+  ['docs/project-overview.md',     'project-overview',     'プロジェクト概要'],
+  ['docs/architecture.md',         'architecture',         'アーキテクチャ'],
+  ['docs/development-approach.md', 'development-approach', '開発の進め方'],
+  ['docs/how-to-join.md',          'how-to-join',          '参加方法'],
+  ['docs/workshop/README.md',      'workshop',             'ワークショップ'],
+  ['docs/roadmap.md',              'roadmap',              'ロードマップ'],
+  ['docs/faq.md',                  'faq',                  'よくある質問']
+];
+
 const ON_SITE = {
   'docs/project-overview.md':     SITE + 'read/project-overview.html',
   'docs/architecture.md':         SITE + 'read/architecture.html',
@@ -64,6 +77,7 @@ async function render(host) {
   body.className = 'prose';
   body.innerHTML = marked.parse(text, { gfm: true, breaks: false });
 
+  dropRepoBacklink(body);
   rewriteLinks(body, path);
   headings(body);
   alerts(body);
@@ -71,8 +85,18 @@ async function render(host) {
   mermaid(body);
 
   if (fallback) fallback.remove();
+  host.appendChild(masthead(path, body));
   host.appendChild(body);
   buildToc(body);
+  host.appendChild(nextPrev(path));
+
+  /* The reading indicator is a scroll-driven CSS animation, but its timeline
+   * is created when the rule first applies — and at that moment this page is
+   * only a fallback link and has nothing to scroll, so the timeline comes up
+   * inactive and the bar never moves. Attach it now that the document is in
+   * the page and there is a scroll range for it to track. */
+  document.documentElement.classList.add('doc-ready');
+  readingProgress();
 
   /* A hash in the URL could not resolve before the document existed. */
   if (location.hash) {
@@ -208,13 +232,141 @@ function tables(scope) {
 function mermaid(scope) {
   for (const code of scope.querySelectorAll('pre > code.language-mermaid')) {
     const pre = code.parentElement;
-    const note = document.createElement('p');
-    note.className = 'mermaid-note';
-    note.innerHTML = 'この図は簡略版です。境界と検証内容まで含む'
-      + ' <a href="' + SITE + 'docs/diagrams/rebuild-lab-trust-boundary.html">'
-      + '対話型の trust boundary 図</a> があります。';
-    pre.parentNode.insertBefore(note, pre.nextSibling);
+
+    /* Replace the block rather than annotate it. Leaving the source on screen
+     * shows a visitor a wall of `flowchart LR` markup, which reads as a page
+     * that failed to render — worse than showing nothing. The definition is
+     * kept, folded away, so nothing is concealed. */
+    const figure = document.createElement('figure');
+    figure.className = 'diagram-swap';
+
+    const link = document.createElement('a');
+    link.className = 'diagram-swap-link';
+    link.href = SITE + 'docs/diagrams/rebuild-lab-trust-boundary.html';
+    link.innerHTML = '<strong>認証・認可の trust boundary</strong>'
+      + '<span>境界と、各所で何を検証し、何をブラウザへ渡さないかまで含んだ図です。'
+      + 'テーマ切替・検索・関係のたどり・拡大縮小が図の中で動きます。</span>'
+      + '<span class="go">図を開く →</span>';
+    figure.appendChild(link);
+
+    const caption = document.createElement('figcaption');
+    const fold = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = 'この位置にある簡略図の定義（mermaid）';
+    fold.appendChild(summary);
+    fold.appendChild(pre.cloneNode(true));
+    caption.appendChild(fold);
+    figure.appendChild(caption);
+
+    pre.parentNode.replaceChild(figure, pre);
   }
+}
+
+/* ------------------------------------------------------------- progress */
+
+/* How far through the document you are. Reading these is the whole point of
+ * the page, so knowing how much is left is worth two pixels at the top. */
+function readingProgress() {
+  const bar = document.querySelector('.read-progress');
+  if (!bar) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    bar.remove();
+    return;
+  }
+
+  let ticking = false;
+  const paint = () => {
+    ticking = false;
+    const doc = document.documentElement;
+    const span = doc.scrollHeight - window.innerHeight;
+    const at = span > 0 ? Math.min(Math.max(window.scrollY / span, 0), 1) : 0;
+    bar.style.transform = 'scaleX(' + at.toFixed(4) + ')';
+  };
+  const request = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(paint);
+  };
+
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', request, { passive: true });
+  paint();
+}
+
+/* --------------------------------------------------------------- masthead */
+
+/* Every document opens with a right-aligned "← README へ戻る" line. That is a
+ * github.com navigation affordance; here it points off the site and sits above
+ * the title, so it goes. The header below replaces what it was for. */
+function dropRepoBacklink(scope) {
+  const first = scope.firstElementChild;
+  if (!first || first.tagName !== 'P') return;
+  if (first.getAttribute('align') !== 'right') return;
+  if (!/README/.test(first.textContent)) return;
+  first.remove();
+}
+
+/* A readout of the document itself. Every figure is counted from what was just
+ * rendered — nothing here is written by hand, so nothing can drift out of date
+ * when the Markdown changes. */
+function masthead(path, body) {
+  const index = ORDER.findIndex((d) => d[0] === path);
+  const chars = body.textContent.replace(/\s+/g, '').length;
+  const facts = [
+    ['出典', path],
+    ['節', String(body.querySelectorAll('h2').length)],
+    ['表', String(body.querySelectorAll('table').length)],
+    ['読了', '約 ' + Math.max(1, Math.round(chars / 500)) + ' 分']
+  ];
+
+  const head = document.createElement('header');
+  head.className = 'doc-head';
+
+  if (index >= 0) {
+    const pos = document.createElement('p');
+    pos.className = 'doc-pos';
+    pos.innerHTML = '<b>' + String(index + 1).padStart(2, '0') + '</b>'
+      + ' <span>/ ' + String(ORDER.length).padStart(2, '0') + '</span> 文書';
+    head.appendChild(pos);
+  }
+
+  const dl = document.createElement('dl');
+  dl.className = 'doc-facts';
+  for (const [k, v] of facts) {
+    /* Each label and its value are wrapped together — valid inside a <dl> and
+     * it stops a narrow screen from wrapping between the two, which reads as
+     * a stray number. */
+    const pair = document.createElement('div');
+    pair.className = 'fact';
+    const dt = document.createElement('dt'); dt.textContent = k;
+    const dd = document.createElement('dd'); dd.textContent = v;
+    pair.appendChild(dt); pair.appendChild(dd);
+    dl.appendChild(pair);
+  }
+  head.appendChild(dl);
+  return head;
+}
+
+/* ------------------------------------------------------------- prev / next */
+
+function nextPrev(path) {
+  const i = ORDER.findIndex((d) => d[0] === path);
+  const nav = document.createElement('nav');
+  nav.className = 'doc-move';
+  nav.setAttribute('aria-label', '前後の文書');
+  if (i < 0) return nav;
+
+  const make = (entry, dir, label) => {
+    const a = document.createElement('a');
+    a.href = SITE + 'read/' + entry[1] + '.html';
+    a.className = 'move ' + dir;
+    a.innerHTML = '<span class="move-label">' + label + '</span>'
+      + '<span class="move-title">' + entry[2] + '</span>';
+    return a;
+  };
+  if (i > 0) nav.appendChild(make(ORDER[i - 1], 'prev', '前の文書'));
+  if (i < ORDER.length - 1) nav.appendChild(make(ORDER[i + 1], 'next', '次の文書'));
+  return nav;
 }
 
 /* -------------------------------------------------------------------- toc */
@@ -239,15 +391,23 @@ function buildToc(scope) {
   box.appendChild(label);
 
   const list = document.createElement('ol');
-  for (const h of items) {
+  items.forEach((h, n) => {
+    /* Number the sections. These documents are argued in order, so the number
+     * says something true; it also gives the contents a spine to hang on. */
+    const num = String(n + 1).padStart(2, '0');
+    const mark = document.createElement('span');
+    mark.className = 'h-num';
+    mark.textContent = num;
+    h.insertBefore(mark, h.firstChild);
+
     const li = document.createElement('li');
     const a = document.createElement('a');
     a.href = '#' + h.id;
-    /* The heading carries a trailing anchor mark that does not belong here. */
-    a.textContent = h.textContent.replace(/#$/, '').trim();
+    a.innerHTML = '<span class="toc-num">' + num + '</span>'
+      + h.textContent.replace(/^\d\d/, '').replace(/#$/, '').trim();
     li.appendChild(a);
     list.appendChild(li);
-  }
+  });
   box.appendChild(list);
 
   nav.textContent = '';
