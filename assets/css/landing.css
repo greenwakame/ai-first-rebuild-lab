@@ -37,6 +37,9 @@
   --danger: #b3261e;
   --danger-soft: #fdeceb;
   --warn: #8a5a00;
+  --warn-soft: #fbf1dd;
+  --info: #3b5f8f;
+  --info-soft: #e9f0f8;
 
   --measure: 68rem;
   --pad: clamp(20px, 5vw, 40px);
@@ -61,6 +64,9 @@
     --danger: #ff8a76;
     --danger-soft: #2e1512;
     --warn: #e2a84a;
+    --warn-soft: #2b2010;
+    --info: #8fb4e6;
+    --info-soft: #14202f;
   }
 }
 
@@ -893,3 +899,226 @@ h3.sub { font-size: 19px; margin: 52px 0 10px; }
 }
 .prlog td a { font-family: var(--mono); font-weight: 600; }
 .prlog td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-muted); }
+
+/* ================================================== reading a document */
+
+/* These styles carry the documents themselves. The content is overwhelmingly
+ * tables — 117 of them across the seven documents — so tables get the most
+ * attention here, not the prose. */
+
+body.reading { background: var(--bg); }
+
+.doc-bar {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.doc-bar .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 24px;
+  padding-block: 14px;
+}
+.doc-bar .brand { color: var(--text); }
+.doc-bar nav { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; }
+
+.doc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+  padding-block: clamp(32px, 6vw, 60px) clamp(48px, 8vw, 88px);
+}
+
+@media (min-width: 1060px) {
+  .doc-layout { grid-template-columns: minmax(0, 1fr) 15rem; }
+  .doc-toc { order: 2; }
+  #doc { order: 1; }
+}
+
+/* ------------------------------------------------------------------- toc */
+
+.doc-toc { align-self: start; }
+@media (min-width: 1060px) {
+  .doc-toc { position: sticky; top: 76px; }
+}
+/* Japanese, so no uppercase or wide tracking — those are for Latin labels. */
+.toc-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 0;
+  list-style-position: inside;
+}
+.toc-title::marker { color: var(--accent); }
+.toc-box[open] .toc-title { margin-bottom: 6px; }
+
+/* Beside the text there is nothing to collapse for, so the control goes away. */
+@media (min-width: 1060px) {
+  .toc-title { cursor: default; list-style: none; padding-top: 0; }
+  .toc-title::marker, .toc-title::-webkit-details-marker { display: none; content: ""; }
+}
+.doc-toc ol {
+  margin: 0;
+  padding: 0 0 0 0;
+  list-style: none;
+  counter-reset: toc;
+  border-left: 1px solid var(--line);
+}
+.doc-toc li { counter-increment: toc; }
+.doc-toc a {
+  display: block;
+  padding: 5px 0 5px 14px;
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.doc-toc a:hover, .doc-toc a:focus-visible { color: var(--accent); border-left-color: var(--accent); }
+
+/* ----------------------------------------------------------------- prose */
+
+.prose { max-width: 44rem; font-size: 16.5px; line-height: 1.95; }
+.prose > :first-child { margin-top: 0; }
+
+.prose h1 {
+  font-size: clamp(27px, 4vw, 36px);
+  line-height: 1.3;
+  letter-spacing: -.015em;
+  margin: 0 0 24px;
+  text-wrap: balance;
+}
+.prose h2 {
+  font-size: clamp(20px, 2.6vw, 25px);
+  line-height: 1.4;
+  margin: 56px 0 14px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--line);
+  text-wrap: balance;
+}
+.prose h3 { font-size: 18px; line-height: 1.5; margin: 36px 0 10px; }
+.prose h4 { font-size: 16px; margin: 28px 0 8px; color: var(--text-muted); }
+
+.prose p, .prose ul, .prose ol { margin: 18px 0; }
+.prose li { margin: 7px 0; }
+.prose li > ul, .prose li > ol { margin: 7px 0; }
+.prose hr { border: 0; border-top: 1px solid var(--line); margin: 52px 0; }
+.prose img { max-width: 100%; height: auto; }
+
+/* The anchor mark stays out of the way until the heading is approached. */
+.prose h1 .anchor, .prose h2 .anchor, .prose h3 .anchor,
+.prose h4 .anchor, .prose h5 .anchor, .prose h6 .anchor {
+  margin-left: .4em;
+  font-family: var(--mono);
+  font-weight: 400;
+  color: var(--line-strong);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.prose h1:hover .anchor, .prose h2:hover .anchor, .prose h3:hover .anchor,
+.prose h4:hover .anchor, .anchor:focus-visible { opacity: 1; }
+.prose .anchor:hover { color: var(--accent); }
+
+.prose code {
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: .87em;
+}
+.prose pre {
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  line-height: 1.7;
+  margin: 22px 0;
+}
+.prose pre code { background: none; border: 0; padding: 0; font-size: 13.5px; }
+
+.mermaid-note { font-size: 14.5px; color: var(--text-muted); margin-top: -10px; }
+
+.prose blockquote {
+  margin: 24px 0;
+  padding: 2px 22px;
+  border-left: 3px solid var(--line-strong);
+  color: var(--text-muted);
+}
+
+.prose a.offsite::after {
+  content: "↗";
+  font-size: .8em;
+  margin-left: .25em;
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------- tables in the prose */
+
+.prose .tablewrap { margin: 24px 0; }
+.prose table { font-size: 15px; }
+.prose th, .prose td { padding: 10px 15px; }
+.prose thead th {
+  background: var(--bg-alt);
+  font-weight: 600;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+.prose td > code { white-space: nowrap; }
+.prose .tablewrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* --------------------------------------------------------- GFM callouts */
+
+.prose blockquote.alert {
+  border-left-width: 3px;
+  border-radius: 0 9px 9px 0;
+  padding: 16px 22px;
+  color: var(--text);
+  background: var(--surface);
+}
+.alert-label {
+  margin: 0 0 6px !important;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.prose blockquote.alert > :last-child { margin-bottom: 0; }
+
+.alert-note      { border-left-color: var(--info); background: var(--info-soft) !important; }
+.alert-note      .alert-label { color: var(--info); }
+.alert-tip       { border-left-color: var(--accent); background: var(--accent-soft) !important; }
+.alert-tip       .alert-label { color: var(--accent); }
+.alert-important { border-left-color: var(--accent); background: var(--accent-soft) !important; }
+.alert-important .alert-label { color: var(--accent); }
+.alert-warning   { border-left-color: var(--warn); background: var(--warn-soft) !important; }
+.alert-warning   .alert-label { color: var(--warn); }
+.alert-caution   { border-left-color: var(--danger); background: var(--danger-soft) !important; }
+.alert-caution   .alert-label { color: var(--danger); }
+
+/* --------------------------------------------------------------- details */
+
+.prose details {
+  margin: 22px 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  padding: 0 20px;
+}
+.prose details[open] { padding-bottom: 6px; }
+.prose summary { cursor: pointer; padding: 14px 0; font-weight: 600; }
+.prose summary::marker { color: var(--accent); }
+
+/* -------------------------------------------------------------- fallback */
+
+.doc-fallback { max-width: 40rem; }
+.doc-fallback h1 { font-size: clamp(26px, 4vw, 34px); margin: 0 0 18px; }
+.doc-fallback p { margin: 0 0 14px; color: var(--text-muted); }
