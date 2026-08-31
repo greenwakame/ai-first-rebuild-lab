@@ -1,0 +1,579 @@
+/* Landing page styling.
+ *
+ * This is the public entry point, not the product UI, so it does not follow
+ * the development repository's design tokens — a decision recorded in ADR 0029.
+ * The palette is taken from this project's own banner, so the site and the
+ * README read as one place.
+ *
+ * The hero is a fixed dark stage in both colour schemes: it is a showpiece
+ * band, and the WebGL visual is composed against a dark ground. Everything
+ * below the hero follows the visitor's light/dark preference.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --stage-0: #070c16;
+  --stage-1: #0d1729;
+  --stage-2: #101f38;
+  --on-stage: #f4f7fb;
+  --on-stage-dim: #a8b6cc;
+
+  --mint: #3fcf8e;
+  --sky: #38bdf8;
+  --violet: #a78bfa;
+
+  --bg: #fbfaf8;
+  --bg-alt: #f4f2ef;
+  --surface: #ffffff;
+  --text: #171513;
+  --text-muted: #57534e;
+  --line: #e4e1dd;
+  --line-strong: #cfcac3;
+  --accent: #0f766e;
+  --accent-soft: #effcf9;
+
+  --measure: 68rem;
+  --pad: clamp(20px, 5vw, 40px);
+  --radius: 14px;
+
+  --font: "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0b;
+    --bg-alt: #121213;
+    --surface: #161617;
+    --text: #f5f4f2;
+    --text-muted: #a6a29d;
+    --line: #262627;
+    --line-strong: #3b3b3d;
+    --accent: #5eead4;
+    --accent-soft: #0b2b28;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.85;
+  text-wrap: pretty;
+  overflow-x: hidden;
+}
+
+a { color: var(--accent); text-underline-offset: 3px; }
+
+:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.skip { position: absolute; left: -9999px; }
+.skip:focus {
+  left: 16px; top: 16px; z-index: 60;
+  background: var(--surface); color: var(--text);
+  padding: 10px 18px; border: 1px solid var(--line-strong); border-radius: 8px;
+}
+
+.wrap { max-width: var(--measure); margin: 0 auto; padding-inline: var(--pad); }
+
+/* =============================================================== the stage */
+
+/* `.hero` only supplies scroll distance; `.hero-stage` is what you look at.
+ * Without the flight the two are the same height and the stage never sticks,
+ * so every fallback keeps a compact one-screen hero and reaches the content
+ * immediately. `overflow` lives on the stage — putting it on the wrapper
+ * would stop `position: sticky` working at all. */
+.hero {
+  position: relative;
+  background: var(--stage-0);
+  color: var(--on-stage);
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+/* Two screens of scroll: one to fly through the four boundaries, then the
+ * content. Applied by script only once the visual is confirmed running. */
+.hero--flight { height: 200svh; }
+
+.hero-stage {
+  position: sticky;
+  top: 0;
+  isolation: isolate;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Painted with CSS alone, so it stands on its own with JavaScript disabled,
+ * with WebGL unavailable, or while the canvas is still initialising. */
+.hero-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(80rem 44rem at 72% 18%, rgba(56, 189, 248, .22), transparent 62%),
+    radial-gradient(60rem 40rem at 22% 78%, rgba(63, 207, 142, .18), transparent 60%),
+    radial-gradient(52rem 36rem at 88% 88%, rgba(167, 139, 250, .20), transparent 62%),
+    linear-gradient(165deg, var(--stage-1) 0%, var(--stage-0) 52%, var(--stage-2) 100%);
+}
+
+/* A faint grid so the empty half of the stage still reads as constructed. */
+.hero-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(148, 190, 235, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 190, 235, .07) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(70% 62% at 50% 42%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(70% 62% at 50% 42%, #000 0%, transparent 78%);
+}
+
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+#hero-canvas.is-live { opacity: 1; }
+
+/* Keeps the headline legible whatever the canvas happens to draw behind it.
+ * The structure lives in the right half, so only the left is darkened. */
+.hero-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(100deg,
+    rgba(7, 12, 22, .90) 0%,
+    rgba(7, 12, 22, .74) 30%,
+    rgba(7, 12, 22, .28) 54%,
+    rgba(7, 12, 22, 0) 74%);
+}
+
+.topbar, .hero-body, .scroll-cue { position: relative; z-index: 3; }
+
+/* Which boundary the camera is passing through. Empty until the flight
+ * starts, and absolutely placed so it never affects the fallback layout. */
+.hero-boundary {
+  position: absolute;
+  right: var(--pad);
+  bottom: 22px;
+  z-index: 3;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-stage-dim);
+  pointer-events: none;
+}
+.hero-boundary span { position: relative; padding-left: 18px; }
+.hero-boundary span:empty { display: none; }
+.hero-boundary span::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  width: 8px; height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 10px var(--mint);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: var(--measure);
+  width: 100%;
+  margin: 0 auto;
+  padding: 22px var(--pad) 0;
+  font-size: 14px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--on-stage);
+  text-decoration: none;
+}
+.brand .dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--mint), var(--sky) 55%, var(--violet));
+  box-shadow: 0 0 12px rgba(63, 207, 142, .8);
+}
+
+.topbar a.plain {
+  color: var(--on-stage-dim);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.topbar a.plain:hover { color: var(--on-stage); border-bottom-color: currentColor; }
+
+.hero-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  max-width: var(--measure);
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px var(--pad) 32px;
+}
+
+.hero-copy { max-width: 48rem; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 22px;
+  padding: 6px 14px;
+  border: 1px solid rgba(148, 190, 235, .28);
+  border-radius: 999px;
+  background: rgba(8, 16, 30, .5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--on-stage-dim);
+  line-height: 1.6;
+}
+
+.hero h1 {
+  margin: 0 0 20px;
+  font-size: clamp(28px, 4.4vw, 52px);
+  line-height: 1.22;
+  letter-spacing: -.015em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.hero h1 .grad {
+  background: linear-gradient(100deg, var(--mint), var(--sky) 46%, var(--violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero .lede {
+  margin: 0 0 34px;
+  font-size: clamp(15px, 2.1vw, 19px);
+  line-height: 1.85;
+  color: var(--on-stage-dim);
+  max-width: 38rem;
+}
+
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 32px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
+}
+.btn-primary {
+  background: linear-gradient(100deg, var(--mint), var(--sky) 70%);
+  color: #04121f;
+  box-shadow: 0 10px 30px -12px rgba(56, 189, 248, .8);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 36px -12px rgba(56, 189, 248, .9); }
+.btn-ghost {
+  color: var(--on-stage);
+  border-color: rgba(180, 205, 235, .34);
+  background: rgba(9, 18, 34, .45);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.btn-ghost:hover { border-color: rgba(180, 205, 235, .7); transform: translateY(-2px); }
+
+.hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  font-family: var(--mono);
+  color: var(--on-stage-dim);
+}
+.hero-facts li {
+  padding: 4px 12px;
+  border: 1px solid rgba(148, 190, 235, .2);
+  border-radius: 999px;
+  background: rgba(8, 16, 30, .4);
+}
+
+.scroll-cue {
+  max-width: var(--measure);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--pad) 26px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--on-stage-dim);
+  text-decoration: none;
+  display: block;
+}
+.scroll-cue .arrow { display: inline-block; animation: nudge 2.2s ease-in-out infinite; }
+@keyframes nudge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+
+@media (max-width: 860px) {
+  .hero-veil {
+    background: linear-gradient(180deg,
+      rgba(7, 12, 22, .82) 0%,
+      rgba(7, 12, 22, .70) 55%,
+      rgba(7, 12, 22, .40) 100%);
+  }
+  #hero-canvas.is-live { opacity: .6; }
+}
+
+/* ================================================================ sections */
+
+section { padding: clamp(64px, 10vw, 116px) 0; }
+.band-alt { background: var(--bg-alt); border-block: 1px solid var(--line); }
+
+.kicker {
+  margin: 0 0 12px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: clamp(24px, 3.6vw, 36px);
+  line-height: 1.32;
+  letter-spacing: -.01em;
+  font-weight: 700;
+}
+
+.section-lede {
+  margin: 0 0 44px;
+  max-width: 42rem;
+  color: var(--text-muted);
+  font-size: clamp(15px, 1.8vw, 17px);
+}
+
+.cards {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+}
+
+.card {
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.card h3 { margin: 0 0 10px; font-size: 18px; line-height: 1.45; }
+.card p { margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.8; }
+.card .num {
+  display: block;
+  margin: 0 0 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--accent);
+}
+
+/* Links that go somewhere get the lift; plain cards do not. */
+a.card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+a.card:hover, a.card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 14px 34px -22px rgba(0, 0, 0, .6);
+}
+a.card h3 { color: var(--accent); }
+a.card .go {
+  display: block;
+  margin: 14px 0 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------- the pillars */
+
+.pillars { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.pillar {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 13rem) minmax(0, 1fr);
+  gap: 8px 24px;
+  align-items: start;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+.pillar .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); padding-top: 5px; }
+.pillar h3 { margin: 0; font-size: 17px; line-height: 1.6; }
+.pillar p { margin: 0; color: var(--text-muted); font-size: 15px; }
+
+@media (max-width: 720px) {
+  .pillar { grid-template-columns: 3rem minmax(0, 1fr); }
+  .pillar p { grid-column: 2; }
+}
+
+/* ------------------------------------------------------------- the diagrams */
+
+.diagram-feature {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  margin-bottom: 20px;
+}
+
+.diagram-note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 36px;
+  padding: 0;
+  list-style: none;
+}
+.diagram-note li {
+  padding: 5px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--text-muted);
+  background: var(--surface);
+}
+
+/* ------------------------------------------------------------------ chips */
+
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.chips li {
+  padding: 9px 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 14.5px;
+  background: var(--surface);
+}
+.chips li b { font-weight: 600; }
+
+/* ------------------------------------------------------------------ steps */
+
+.steps { margin: 0 0 32px; padding: 0; list-style: none; counter-reset: step; }
+.steps li {
+  position: relative;
+  padding: 0 0 22px 46px;
+  counter-increment: step;
+}
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0; top: 2px;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1;
+}
+.steps li::after {
+  content: "";
+  position: absolute;
+  left: 15px; top: 36px; bottom: 4px;
+  border-left: 1px dashed var(--line-strong);
+}
+.steps li:last-child { padding-bottom: 0; }
+.steps li:last-child::after { display: none; }
+.steps b { display: block; font-size: 16px; }
+.steps span { color: var(--text-muted); font-size: 15px; }
+
+.callout {
+  margin: 36px 0 0;
+  padding: 20px 24px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--accent-soft);
+  font-size: 15px;
+}
+.callout p { margin: 0; }
+.callout p + p { margin-top: 10px; }
+
+/* ------------------------------------------------------------------ footer */
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 56px 0 72px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: 0 0 24px;
+}
+.site-footer .license { margin: 0; }
+
+/* ============================================== motion & reveal (opt-in) */
+
+.js .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.js .reveal.shown { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  .js .reveal { opacity: 1; transform: none; }
+  .scroll-cue .arrow { animation: none; }
+  #hero-canvas { opacity: 1; transition: none; }
+}
