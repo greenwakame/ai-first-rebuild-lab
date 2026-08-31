@@ -18,7 +18,7 @@
 <p align="center">
   <a href="docs/project-overview.md">プロジェクト概要</a> ·
   <a href="docs/architecture.md">アーキテクチャ</a> ·
-  <a href="https://greenwakame.github.io/ai-first-rebuild-lab/diagrams/">設計図</a> ·
+  <a href="https://greenwakame.github.io/ai-first-rebuild-lab/docs/diagrams/">設計図</a> ·
   <a href="docs/development-approach.md">開発の進め方</a> ·
   <a href="docs/adr/">設計判断（ADR）</a> ·
   <a href="docs/how-to-join.md">参加方法</a> ·
@@ -144,7 +144,7 @@ flowchart LR
 | --- | --- |
 | [project-overview.md](docs/project-overview.md) | 何を作っているか、なぜ作り直すか、扱うデータ |
 | [architecture.md](docs/architecture.md) | 技術構成とサービス境界 |
-| [設計図](https://greenwakame.github.io/ai-first-rebuild-lab/diagrams/) | ADRを投影した図。境界と検証内容を1枚で見る（判断の正はADR） |
+| [設計図](https://greenwakame.github.io/ai-first-rebuild-lab/docs/diagrams/) | ADRを投影した図。境界と検証内容を1枚で見る（判断の正はADR） |
 | [development-approach.md](docs/development-approach.md) | AI-first開発・ADR駆動・契約優先・検証文化 |
 | [roadmap.md](docs/roadmap.md) | フェーズと現在地 |
 | [how-to-join.md](docs/how-to-join.md) | 参加方法 |

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if page.title %}{{ page.title }} — {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+<meta name="description" content="{{ page.description | default: site.description }}">
+<link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
+</head>
+<body>
+<a class="skip" href="#content">本文へ移動</a>
+
+<header class="site-header">
+  <a class="brand" href="{{ '/' | relative_url }}">AI-first rebuild lab</a>
+  <nav class="site-nav" aria-label="主要な文書">
+    <a href="{{ '/docs/project-overview.html' | relative_url }}">概要</a>
+    <a href="{{ '/docs/architecture.html' | relative_url }}">アーキテクチャ</a>
+    <a href="{{ '/docs/diagrams/' | relative_url }}">設計図</a>
+    <a href="{{ '/docs/how-to-join.html' | relative_url }}">参加方法</a>
+  </nav>
+</header>
+
+<main id="content" class="prose">
+{{ content }}
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="関連する文書">
+    <a href="{{ '/docs/development-approach.html' | relative_url }}">開発の進め方</a>
+    <a href="{{ '/docs/adr/' | relative_url }}">設計判断（ADR）</a>
+    <a href="{{ '/docs/roadmap.html' | relative_url }}">ロードマップ</a>
+    <a href="{{ '/docs/workshop/' | relative_url }}">ワークショップ</a>
+    <a href="https://github.com/greenwakame/ai-first-rebuild-lab/discussions">Discussions</a>
+    <a href="https://github.com/greenwakame/ai-first-rebuild-lab">GitHub</a>
+  </nav>
+  <p class="license">文書は CC BY 4.0 で公開しています。</p>
+</footer>
+</body>
+</html>

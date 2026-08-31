@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-first rebuild lab</title>
+<meta name="description" content="レガシー社内業務システムを Next.js・Rust・Supabase で作り直す取り組みの公開入口。">
+<!-- This file is a static page: Jekyll copies it through without a layout, so
+     paths are absolute and no Liquid is used. The landing page design is being
+     worked on separately; this is the signpost until it lands. -->
+<link rel="stylesheet" href="/ai-first-rebuild-lab/assets/css/site.css">
+<style>
+  .hero { max-width: 44rem; margin: 0 auto; padding: 72px 24px 8px; }
+  .hero h1 { font-size: 34px; line-height: 1.25; margin: 0 0 12px; letter-spacing: .01em; }
+  .hero .lede { font-size: 17px; color: var(--text-muted); margin: 0 0 8px; }
+  .grid {
+    max-width: 44rem; margin: 0 auto; padding: 24px 24px 0;
+    display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+  .tile {
+    display: block; padding: 18px 20px; border: 1px solid var(--line);
+    border-radius: 8px; background: var(--surface); text-decoration: none; color: inherit;
+    transition: border-color .2s ease;
+  }
+  .tile:hover, .tile:focus-visible { border-color: var(--accent); }
+  .tile strong { display: block; font-size: 16px; color: var(--accent); margin-bottom: 4px; }
+  .tile span { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<a class="skip" href="#start">本文へ移動</a>
+
+<section class="hero">
+  <h1>レガシー業務システムを、<br>AI と一緒に作り直しています。</h1>
+  <p class="lede">
+    Next.js・Rust・Supabase で社内システムを置き換える取り組みの公開入口です。
+    設計を先に固め、判断を記録し、検証してから進める — その過程を公開しています。
+  </p>
+</section>
+
+<div class="grid" id="start">
+  <a class="tile" href="/ai-first-rebuild-lab/docs/project-overview.html">
+    <strong>プロジェクト概要</strong>
+    <span>何を作っていて、なぜ作り直すのか</span>
+  </a>
+  <a class="tile" href="/ai-first-rebuild-lab/docs/architecture.html">
+    <strong>アーキテクチャ</strong>
+    <span>技術構成とサービス境界</span>
+  </a>
+  <a class="tile" href="/ai-first-rebuild-lab/docs/diagrams/">
+    <strong>設計図</strong>
+    <span>設計判断を投影した、動かせる図</span>
+  </a>
+  <a class="tile" href="/ai-first-rebuild-lab/docs/development-approach.html">
+    <strong>開発の進め方</strong>
+    <span>AI-first・ADR駆動・契約優先・検証文化</span>
+  </a>
+  <a class="tile" href="/ai-first-rebuild-lab/docs/how-to-join.html">
+    <strong>参加方法</strong>
+    <span>どうやって関わるか</span>
+  </a>
+  <a class="tile" href="/ai-first-rebuild-lab/docs/workshop/">
+    <strong>ワークショップ</strong>
+    <span>当日の流れと事前準備</span>
+  </a>
+</div>
+
+<footer class="site-footer">
+  <nav aria-label="関連">
+    <a href="/ai-first-rebuild-lab/docs/adr/">設計判断（ADR）</a>
+    <a href="/ai-first-rebuild-lab/docs/roadmap.html">ロードマップ</a>
+    <a href="/ai-first-rebuild-lab/docs/faq.html">よくある質問</a>
+    <a href="https://github.com/greenwakame/ai-first-rebuild-lab/discussions">Discussions</a>
+    <a href="https://github.com/greenwakame/ai-first-rebuild-lab">GitHub</a>
+  </nav>
+  <p class="license">文書は CC BY 4.0 で公開しています。</p>
+</footer>
+</body>
+</html>
