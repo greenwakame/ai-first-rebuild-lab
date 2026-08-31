@@ -40,12 +40,22 @@
     try { doc = frame.contentDocument; } catch (err) { return; }
     if (!doc || !doc.documentElement) return;
 
-    var want = doc.documentElement.scrollHeight;
+    /* scrollHeight and clientHeight are integers. The real content here is
+     * 777.359px tall, so both round to 777, `scrollHeight > clientHeight` is
+     * false, and a frame set to 777 still overflows by a third of a pixel —
+     * which the browser renders as a scrollbar. Measure the fractional height
+     * and round up, then add a pixel so nothing is left over. */
+    var de = doc.documentElement;
+    var body = doc.body;
+    var want = de.scrollHeight;
+    if (body) {
+      want = Math.max(want, Math.ceil(body.getBoundingClientRect().height), body.scrollHeight);
+    }
     if (!want) return;
-    want = Math.min(Math.max(want, MIN_HEIGHT), MAX_HEIGHT);
+    want = Math.min(Math.max(want + 1, MIN_HEIGHT), MAX_HEIGHT);
 
     var have = frame.getBoundingClientRect().height;
-    if (Math.abs(want - have) <= 2) return;
+    if (Math.abs(want - have) <= 1) return;
     frame.style.height = want + 'px';
   }
 
