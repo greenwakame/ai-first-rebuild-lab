@@ -26,7 +26,13 @@ const SITE = '/ai-first-rebuild-lab/';
  * not listed here keeps going to github.com — that is the default, not a
  * failure, and it is what keeps ADR and reference/ where they belong. */
 const ON_SITE = {
-  'docs/project-overview.md': SITE + 'read/project-overview.html'
+  'docs/project-overview.md':     SITE + 'read/project-overview.html',
+  'docs/architecture.md':         SITE + 'read/architecture.html',
+  'docs/development-approach.md': SITE + 'read/development-approach.html',
+  'docs/how-to-join.md':          SITE + 'read/how-to-join.html',
+  'docs/workshop/README.md':      SITE + 'read/workshop.html',
+  'docs/roadmap.md':              SITE + 'read/roadmap.html',
+  'docs/faq.md':                  SITE + 'read/faq.html'
 };
 
 const root = document.getElementById('doc');
