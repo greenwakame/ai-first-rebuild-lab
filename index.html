@@ -24,12 +24,25 @@
 <link rel="stylesheet" href="/ai-first-rebuild-lab/assets/css/landing.css">
 <link rel="icon" href="/ai-first-rebuild-lab/.github/banner.svg" type="image/svg+xml">
 <script>document.documentElement.className += ' js';</script>
+
+<!-- three.js is vendored into this repository and resolved from here, so the
+     page has no runtime dependency on a CDN and still needs no build step.
+     Version, licence and hashes: /vendor/three/PROVENANCE.md -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "/ai-first-rebuild-lab/vendor/three/build/three.module.min.js",
+    "three/addons/": "/ai-first-rebuild-lab/vendor/three/examples/jsm/"
+  }
+}
+</script>
 </head>
 <body>
 <a class="skip" href="#main">本文へ移動</a>
 
 <!-- ============================================================ the stage -->
 <header class="hero">
+ <div class="hero-stage">
   <div class="topbar">
     <a class="brand" href="/ai-first-rebuild-lab/">
       <span class="dot" aria-hidden="true"></span>ai-first-rebuild-lab
@@ -59,7 +72,10 @@
     </div>
   </div>
 
+  <p class="hero-boundary" aria-hidden="true"><span id="hero-boundary"></span></p>
+
   <a class="scroll-cue" href="#main">Scroll <span class="arrow" aria-hidden="true">↓</span></a>
+ </div>
 </header>
 
 <main id="main">
@@ -294,7 +310,7 @@
   </div>
 </footer>
 
-<script src="/ai-first-rebuild-lab/assets/js/hero.js" defer></script>
+<script type="module" src="/ai-first-rebuild-lab/assets/js/hero.js"></script>
 <script>
 /* Reveal-on-scroll. The `.js` class above is what hides these in the first
  * place, so with JavaScript off every section is simply visible. */

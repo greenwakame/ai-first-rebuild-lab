@@ -1,513 +1,564 @@
 /* Hero visual for the landing page.
  *
- * Renders the project's own thesis as motion: four boundaries stacked in depth
- * (browser, web, API, database), with traffic converging inward and every
- * crossing passing through a boundary. Hand-written WebGL — this repository
- * deliberately carries no third-party JavaScript, so there is no bundler, no
- * build step and no vendored dependency to record provenance for.
+ * Renders the project's own thesis as something you travel through: four
+ * boundaries stacked in depth (browser, web, API, database), traffic
+ * converging inward as it goes, and a camera that flies through every one of
+ * them as you scroll. Built on the vendored three.js in /vendor/three — see
+ * that directory's PROVENANCE.md for version and hashes. There is no build
+ * step; the import map in index.html resolves `three` to a file in this
+ * repository.
  *
  * Progressive enhancement, in order of what the visitor gets:
- *   no JS / no WebGL  -> the CSS gradient stage behind this canvas, untouched
- *   reduced motion    -> one static frame, drawn once, no animation loop
- *   low-power device  -> fewer nodes, fewer particles, capped pixel ratio
- *   otherwise         -> the full animation, paused when scrolled out of view
+ *   no JS / no module support -> the CSS gradient stage, hero stays one screen
+ *   no WebGL2 / no float RTs  -> same; nothing is added and nothing breaks
+ *   reduced motion            -> one static frame, one screen, no scroll link
+ *   low-power device          -> quarter the particles, no bloom, capped DPR
+ *   otherwise                 -> the full flight
  *
- * The canvas is decorative in every mode: it carries no content and no link.
+ * The taller scrolling stage is opt-in: it is only applied once the visual is
+ * confirmed running, so every fallback keeps the compact one-screen hero and
+ * reaches the content immediately.
  */
-(function () {
-  'use strict';
 
-  var canvas = document.getElementById('hero-canvas');
-  if (!canvas || !window.WebGLRenderingContext) return;
+import * as THREE from 'three';
+import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-  var reduceMotion = window.matchMedia
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Everything below runs inside boot(). Anything unsupported throws, which
+ * lands in the catch at the bottom and simply leaves the CSS stage in place —
+ * no half-built scene, and no uncaught error in a visitor's console. */
+function boot() {
 
-  /* Anything that suggests a phone, a tablet or a thin laptop gets the light
-   * build. These are hints, not guarantees, so the frame-time watchdog below
-   * stays in place regardless of what we decide here. */
-  function wantsLightBuild() {
-    if (window.innerWidth < 760) return true;
-    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
-    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return true;
-    if (navigator.deviceMemory && navigator.deviceMemory <= 4) return true;
-    return false;
+const canvas = document.getElementById('hero-canvas');
+const hero = document.querySelector('.hero');
+const label = document.getElementById('hero-boundary');
+if (!canvas || !hero) throw new Error('hero markup missing');
+
+const reduceMotion = window.matchMedia
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Hints, not guarantees — the frame-time watchdog below stays in place. */
+function wantsLightBuild() {
+  if (window.innerWidth < 760) return true;
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
+  if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return true;
+  if (navigator.deviceMemory && navigator.deviceMemory <= 4) return true;
+  return false;
+}
+
+let light = wantsLightBuild();
+
+/* ------------------------------------------------------------------ scene */
+
+/* The four boundaries, front to back, narrowing as traffic converges on one
+ * store. Colours run along this project's own banner gradient. */
+const BOUNDARIES = [
+  { z:   0.0, r: 5.6, color: 0x3fcf8e, name: 'Browser' },
+  { z:  -7.0, r: 4.3, color: 0x38bdf8, name: 'Next.js' },
+  { z: -14.0, r: 3.1, color: 0x74a0fb, name: 'Rust API' },
+  { z: -21.0, r: 1.9, color: 0xa78bfa, name: 'PostgreSQL' }
+];
+
+const CAMERA_START = 7.5;
+const CAMERA_END = -18.0;
+
+/* Probe before handing the canvas to three.js: its renderer logs its own
+ * console error on failure, and a browser without WebGL2 has done nothing
+ * wrong. Release the probe context straight away — they are a limited
+ * resource and the real one is about to be created. */
+const probe = document.createElement('canvas').getContext('webgl2');
+if (!probe) throw new Error('WebGL2 unavailable');
+const loseProbe = probe.getExtension('WEBGL_lose_context');
+if (loseProbe) loseProbe.loseContext();
+
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  alpha: true,
+  antialias: !light,
+  powerPreference: 'low-power'
+});
+if (!renderer.capabilities.isWebGL2) {
+  renderer.dispose();
+  throw new Error('WebGL2 required');
+}
+renderer.setClearColor(0x000000, 0);
+
+/* GPUComputationRenderer needs to render into float textures. Without this
+ * extension it does not fail cleanly — it builds an incomplete framebuffer and
+ * then loops, drawing nothing and logging a GL error every frame. Check up
+ * front so such a device gets the CSS stage instead of a dead animation. */
+if (!renderer.extensions.has('EXT_color_buffer_float')) {
+  renderer.dispose();
+  throw new Error('float render targets unavailable');
+}
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 120);
+camera.position.set(0, 0, CAMERA_START);
+
+/* --------------------------------------------------------- the boundaries */
+
+/* Rings make each boundary read as a plane you cross rather than as a loose
+ * cloud, which is the whole point of the picture. */
+/* Everything lives in one group so it can be pushed into the empty half of
+ * the stage on wide screens, leaving the headline on cleaner ground. */
+const world = new THREE.Group();
+scene.add(world);
+
+const ringGroup = new THREE.Group();
+const ringMats = [];
+BOUNDARIES.forEach((b) => {
+  const pts = [];
+  const SEG = light ? 72 : 144;
+  for (let i = 0; i <= SEG; i++) {
+    const a = (i / SEG) * Math.PI * 2;
+    pts.push(new THREE.Vector3(Math.cos(a) * b.r, Math.sin(a) * b.r * 0.86, b.z));
   }
-
-  var light = wantsLightBuild();
-
-  var gl = null;
-  try {
-    var opts = { alpha: true, antialias: !light, depth: false, powerPreference: 'low-power' };
-    gl = canvas.getContext('webgl', opts) || canvas.getContext('experimental-webgl', opts);
-  } catch (e) { gl = null; }
-  if (!gl) return;
-
-  /* ---------------------------------------------------------------- matrices */
-
-  function mat4() { return new Float32Array(16); }
-
-  function perspective(out, fovy, aspect, near, far) {
-    var f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
-    out[0] = f / aspect; out[1] = 0; out[2] = 0; out[3] = 0;
-    out[4] = 0; out[5] = f; out[6] = 0; out[7] = 0;
-    out[8] = 0; out[9] = 0; out[10] = (far + near) * nf; out[11] = -1;
-    out[12] = 0; out[13] = 0; out[14] = 2 * far * near * nf; out[15] = 0;
-    return out;
-  }
-
-  function multiply(out, a, b) {
-    for (var c = 0; c < 4; c++) {
-      var b0 = b[c * 4], b1 = b[c * 4 + 1], b2 = b[c * 4 + 2], b3 = b[c * 4 + 3];
-      out[c * 4]     = a[0] * b0 + a[4] * b1 + a[8]  * b2 + a[12] * b3;
-      out[c * 4 + 1] = a[1] * b0 + a[5] * b1 + a[9]  * b2 + a[13] * b3;
-      out[c * 4 + 2] = a[2] * b0 + a[6] * b1 + a[10] * b2 + a[14] * b3;
-      out[c * 4 + 3] = a[3] * b0 + a[7] * b1 + a[11] * b2 + a[15] * b3;
-    }
-    return out;
-  }
-
-  function viewMatrix(out, yaw, pitch, dist, offsetX) {
-    var cy = Math.cos(yaw), sy = Math.sin(yaw);
-    var cx = Math.cos(pitch), sx = Math.sin(pitch);
-    /* translate(0,0,-dist) * rotateX(pitch) * rotateY(yaw), written out. */
-    out[0] = cy;       out[1] = sx * sy;  out[2] = -cx * sy; out[3] = 0;
-    out[4] = 0;        out[5] = cx;       out[6] = sx;       out[7] = 0;
-    out[8] = sy;       out[9] = -sx * cy; out[10] = cx * cy; out[11] = 0;
-    out[12] = offsetX; out[13] = 0;       out[14] = -dist;   out[15] = 1;
-    return out;
-  }
-
-  /* ---------------------------------------------------------------- geometry */
-
-  /* Four boundaries, front to back, narrowing as traffic converges on one
-   * store. Colours run along the banner's own gradient. */
-  var LAYERS = [
-    { z:  1.60, r: 2.05, n: light ? 13 : 22, c: [0.25, 0.81, 0.56] },
-    { z:  0.55, r: 1.60, n: light ? 10 : 16, c: [0.22, 0.74, 0.97] },
-    { z: -0.50, r: 1.20, n: light ?  8 : 12, c: [0.45, 0.63, 0.99] },
-    { z: -1.55, r: 0.78, n: light ?  6 :  9, c: [0.65, 0.55, 0.98] }
-  ];
-
-  var GOLDEN = 2.39996323;
-  var seedState = 20250831;
-  function rand() { /* deterministic, so every reload draws the same structure */
-    seedState = (seedState * 1664525 + 1013904223) % 4294967296;
-    return seedState / 4294967296;
-  }
-
-  var nodes = [];        /* { x, y, z, layer, color } */
-  var layerRanges = [];  /* [start, end) into nodes, per layer */
-
-  LAYERS.forEach(function (L, li) {
-    var start = nodes.length;
-    for (var k = 0; k < L.n; k++) {
-      var a = k * GOLDEN + li * 1.7;
-      var rr = L.r * Math.sqrt((k + 0.55) / L.n);
-      nodes.push({
-        x: rr * Math.cos(a) + (rand() - 0.5) * 0.12,
-        y: rr * Math.sin(a) * 0.82 + (rand() - 0.5) * 0.12,
-        z: L.z + (rand() - 0.5) * 0.16,
-        layer: li,
-        color: L.c
-      });
-    }
-    layerRanges.push([start, nodes.length]);
+  const ringMat = new THREE.LineBasicMaterial({
+    color: b.color, transparent: true, opacity: 0.85,
+    blending: THREE.AdditiveBlending, depthWrite: false
   });
+  ringGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMat));
 
-  /* Each node reaches into the next boundary through its two nearest peers. */
-  var edges = [];                       /* { a, b } indices into nodes */
-  var outgoing = nodes.map(function () { return []; });
-
-  for (var li = 0; li < LAYERS.length - 1; li++) {
-    var here = layerRanges[li], next = layerRanges[li + 1];
-    for (var i = here[0]; i < here[1]; i++) {
-      var cand = [];
-      for (var j = next[0]; j < next[1]; j++) {
-        var dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
-        cand.push({ j: j, d: dx * dx + dy * dy });
-      }
-      cand.sort(function (p, q) { return p.d - q.d; });
-      for (var m = 0; m < Math.min(2, cand.length); m++) {
-        outgoing[i].push(edges.length);
-        edges.push({ a: i, b: cand[m].j });
-      }
-    }
+  /* Spokes, so the ring has some structure when you pass through it. */
+  const spokes = [];
+  const N = light ? 16 : 28;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2;
+    const inner = 0.82 + (i % 3) * 0.05;
+    spokes.push(
+      new THREE.Vector3(Math.cos(a) * b.r * inner, Math.sin(a) * b.r * 0.86 * inner, b.z),
+      new THREE.Vector3(Math.cos(a) * b.r, Math.sin(a) * b.r * 0.86, b.z)
+    );
   }
-
-  /* --------------------------------------------------------------- buffers */
-
-  var POINT_STRIDE = 9;  /* x y z  r g b  size alpha seed */
-  var LINE_STRIDE  = 7;  /* x y z  r g b  alpha */
-
-  var lineData = [];
-  edges.forEach(function (e) {
-    var A = nodes[e.a], B = nodes[e.b];
-    lineData.push(A.x, A.y, A.z, A.color[0], A.color[1], A.color[2], 0.30);
-    lineData.push(B.x, B.y, B.z, B.color[0], B.color[1], B.color[2], 0.30);
+  const spokeMat = new THREE.LineBasicMaterial({
+    color: b.color, transparent: true, opacity: 0.55,
+    blending: THREE.AdditiveBlending, depthWrite: false
   });
+  ringGroup.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(spokes), spokeMat));
 
-  /* The boundaries themselves, drawn as rings so they read as planes you
-   * cross rather than as a loose cloud of points. */
-  var RING_SEGMENTS = light ? 40 : 72;
-  LAYERS.forEach(function (L) {
-    for (var s = 0; s < RING_SEGMENTS; s++) {
-      var a0 = (s / RING_SEGMENTS) * Math.PI * 2;
-      var a1 = ((s + 1) / RING_SEGMENTS) * Math.PI * 2;
-      var rr = L.r * 1.16;
-      lineData.push(rr * Math.cos(a0), rr * Math.sin(a0) * 0.82, L.z, L.c[0], L.c[1], L.c[2], 0.16);
-      lineData.push(rr * Math.cos(a1), rr * Math.sin(a1) * 0.82, L.z, L.c[0], L.c[1], L.c[2], 0.16);
+  ringMats.push({ z: b.z, ring: ringMat, spokes: spokeMat });
+});
+world.add(ringGroup);
+
+/* ------------------------------------------------- the particle simulation */
+
+const SIM = light ? 128 : 256;            /* SIM * SIM particles */
+const COUNT = SIM * SIM;
+
+/* A cheap value-noise field. Written here rather than pulled in so the only
+ * vendored dependency stays three.js itself. */
+const NOISE_GLSL = `
+  float hash13(vec3 p) {
+    p = fract(p * 0.3183099 + vec3(0.71, 0.113, 0.419));
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+  }
+  float vnoise(vec3 x) {
+    vec3 i = floor(x), f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(mix(hash13(i + vec3(0,0,0)), hash13(i + vec3(1,0,0)), f.x),
+          mix(hash13(i + vec3(0,1,0)), hash13(i + vec3(1,1,0)), f.x), f.y),
+      mix(mix(hash13(i + vec3(0,0,1)), hash13(i + vec3(1,0,1)), f.x),
+          mix(hash13(i + vec3(0,1,1)), hash13(i + vec3(1,1,1)), f.x), f.y), f.z);
+  }
+  /* Gradient of the field, turned across the travel axis. Not a true curl,
+   * but it swirls around the path without the clumping a raw gradient gives,
+   * at a third of the noise samples. */
+  vec3 swirl(vec3 p) {
+    const float e = 0.28;
+    vec3 g = vec3(
+      vnoise(p + vec3(e,0,0)) - vnoise(p - vec3(e,0,0)),
+      vnoise(p + vec3(0,e,0)) - vnoise(p - vec3(0,e,0)),
+      vnoise(p + vec3(0,0,e)) - vnoise(p - vec3(0,0,e))) / (2.0 * e);
+    return cross(g, vec3(0.0, 0.0, 1.0));
+  }
+`;
+
+const FRONT_Z = BOUNDARIES[0].z;
+const BACK_Z = BOUNDARIES[BOUNDARIES.length - 1].z;
+
+const POSITION_FRAG = `
+  uniform float uDelta;
+  uniform float uTime;
+  ${NOISE_GLSL}
+  void main() {
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+    vec4 pos = texture2D(texturePosition, uv);
+    vec3 vel = texture2D(textureVelocity, uv).xyz;
+
+    pos.xyz += vel * uDelta;
+    pos.w -= uDelta * 0.055;
+
+    /* Past the store, or spent: re-enter at the outermost boundary. */
+    if (pos.w <= 0.0 || pos.z < ${BACK_Z.toFixed(1)} - 3.0) {
+      float a = hash13(vec3(uv * 91.7, uTime)) * 6.2831853;
+      float r = 1.2 + hash13(vec3(uv * 37.1, uTime + 5.0)) * ${BOUNDARIES[0].r.toFixed(1)};
+      pos.x = cos(a) * r;
+      pos.y = sin(a) * r * 0.86;
+      pos.z = ${FRONT_Z.toFixed(1)} + 3.5 + hash13(vec3(uv * 13.3, uTime + 9.0)) * 5.0;
+      pos.w = 0.55 + hash13(vec3(uv * 61.9, uTime + 2.0)) * 0.45;
     }
-  });
-  var lineArray = new Float32Array(lineData);
-
-  var nodeArray = new Float32Array(nodes.length * POINT_STRIDE);
-  nodes.forEach(function (n, i) {
-    var o = i * POINT_STRIDE;
-    nodeArray[o] = n.x; nodeArray[o + 1] = n.y; nodeArray[o + 2] = n.z;
-    nodeArray[o + 3] = n.color[0]; nodeArray[o + 4] = n.color[1]; nodeArray[o + 5] = n.color[2];
-    nodeArray[o + 6] = 26.0; nodeArray[o + 7] = 0.85; nodeArray[o + 8] = rand();
-  });
-
-  var PARTICLES = light ? 42 : 130;
-  var particles = [];
-  for (var p = 0; p < PARTICLES; p++) {
-    var e0 = Math.floor(rand() * edges.length);
-    particles.push({ e: e0, t: rand(), speed: 0.16 + rand() * 0.22 });
+    gl_FragColor = pos;
   }
-  var particleArray = new Float32Array(PARTICLES * POINT_STRIDE);
+`;
 
-  /* --------------------------------------------------------------- shaders */
+/* The funnel: the further in a particle gets, the tighter the radius it is
+ * pulled toward. Many clients at the front, one store at the back. */
+const VELOCITY_FRAG = `
+  uniform float uDelta;
+  uniform float uTime;
+  ${NOISE_GLSL}
+  void main() {
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+    vec3 pos = texture2D(texturePosition, uv).xyz;
+    vec3 vel = texture2D(textureVelocity, uv).xyz;
 
-  var POINT_VS =
-    'attribute vec3 aPos;' +
-    'attribute vec3 aColor;' +
-    'attribute float aSize;' +
-    'attribute float aAlpha;' +
-    'attribute float aSeed;' +
-    'uniform mat4 uProj;' +
-    'uniform mat4 uView;' +
-    'uniform float uScale;' +
-    'uniform float uTime;' +
-    'varying vec3 vColor;' +
-    'varying float vAlpha;' +
-    'void main() {' +
-    '  vec4 mv = uView * vec4(aPos, 1.0);' +
-    '  gl_Position = uProj * mv;' +
-    '  float depth = -mv.z;' +
-    '  float tw = 0.72 + 0.28 * sin(uTime * 0.9 + aSeed * 6.2831853);' +
-    '  gl_PointSize = max(1.0, aSize * uScale * tw / max(0.2, depth));' +
-    '  float fog = clamp((depth - 3.0) / 4.2, 0.0, 1.0);' +
-    '  vColor = aColor;' +
-    '  vAlpha = aAlpha * tw * mix(1.0, 0.22, fog);' +
-    '}';
+    vel += swirl(pos * 0.16 + vec3(0.0, 0.0, uTime * 0.06)) * uDelta * 5.5;
+    vel.z -= uDelta * 1.15;
 
-  var POINT_FS =
-    'precision mediump float;' +
-    'varying vec3 vColor;' +
-    'varying float vAlpha;' +
-    'void main() {' +
-    '  vec2 d = gl_PointCoord - vec2(0.5);' +
-    '  float r = dot(d, d);' +
-    '  if (r > 0.25) discard;' +
-    '  float a = smoothstep(0.25, 0.0, r) * vAlpha;' +
-    '  gl_FragColor = vec4(vColor * a, a);' +
-    '}';
+    float t = clamp((${FRONT_Z.toFixed(1)} - pos.z) / ${(FRONT_Z - BACK_Z).toFixed(1)}, 0.0, 1.0);
+    float targetR = mix(${BOUNDARIES[0].r.toFixed(1)}, ${BOUNDARIES[3].r.toFixed(1)}, t);
+    vec2 radial = pos.xy;
+    float len = max(length(radial), 0.0001);
+    vel.xy -= (radial / len) * (len - targetR) * uDelta * 1.6;
 
-  var LINE_VS =
-    'attribute vec3 aPos;' +
-    'attribute vec3 aColor;' +
-    'attribute float aAlpha;' +
-    'uniform mat4 uProj;' +
-    'uniform mat4 uView;' +
-    'varying vec3 vColor;' +
-    'varying float vAlpha;' +
-    'void main() {' +
-    '  vec4 mv = uView * vec4(aPos, 1.0);' +
-    '  gl_Position = uProj * mv;' +
-    '  float fog = clamp((-mv.z - 3.0) / 4.2, 0.0, 1.0);' +
-    '  vColor = aColor;' +
-    '  vAlpha = aAlpha * mix(1.0, 0.18, fog);' +
-    '}';
-
-  var LINE_FS =
-    'precision mediump float;' +
-    'varying vec3 vColor;' +
-    'varying float vAlpha;' +
-    'void main() { gl_FragColor = vec4(vColor * vAlpha, vAlpha); }';
-
-  function compile(type, src) {
-    var s = gl.createShader(type);
-    gl.shaderSource(s, src);
-    gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { gl.deleteShader(s); return null; }
-    return s;
+    vel *= 0.965;
+    gl_FragColor = vec4(vel, 1.0);
   }
+`;
 
-  function program(vsSrc, fsSrc) {
-    var vs = compile(gl.VERTEX_SHADER, vsSrc), fs = compile(gl.FRAGMENT_SHADER, fsSrc);
-    if (!vs || !fs) return null;
-    var pr = gl.createProgram();
-    gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
-    gl.deleteShader(vs); gl.deleteShader(fs);
-    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { gl.deleteProgram(pr); return null; }
-    return pr;
+const gpu = new GPUComputationRenderer(SIM, SIM, renderer);
+const posTex = gpu.createTexture();
+const velTex = gpu.createTexture();
+
+(function seed() {
+  const p = posTex.image.data, v = velTex.image.data;
+  for (let i = 0; i < COUNT; i++) {
+    const o = i * 4;
+    const a = Math.random() * Math.PI * 2;
+    const r = Math.sqrt(Math.random()) * BOUNDARIES[0].r;
+    p[o] = Math.cos(a) * r;
+    p[o + 1] = Math.sin(a) * r * 0.86;
+    p[o + 2] = FRONT_Z + 4 - Math.random() * (FRONT_Z - BACK_Z + 6);
+    p[o + 3] = 0.3 + Math.random() * 0.7;
+    v[o] = v[o + 1] = 0;
+    v[o + 2] = -0.4 - Math.random() * 0.5;
+    v[o + 3] = 1;
   }
-
-  var pointProg = program(POINT_VS, POINT_FS);
-  var lineProg = program(LINE_VS, LINE_FS);
-  if (!pointProg || !lineProg) return;   /* leave the CSS stage as-is */
-
-  function locs(pr, names) {
-    var out = {};
-    names.forEach(function (n) {
-      out[n] = n.charAt(0) === 'a' ? gl.getAttribLocation(pr, n) : gl.getUniformLocation(pr, n);
-    });
-    return out;
-  }
-
-  var pl = locs(pointProg, ['aPos', 'aColor', 'aSize', 'aAlpha', 'aSeed', 'uProj', 'uView', 'uScale', 'uTime']);
-  var ll = locs(lineProg, ['aPos', 'aColor', 'aAlpha', 'uProj', 'uView']);
-
-  var lineBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, lineBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, lineArray, gl.STATIC_DRAW);
-
-  var nodeBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, nodeBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, nodeArray, gl.STATIC_DRAW);
-
-  var particleBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, particleBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, particleArray, gl.DYNAMIC_DRAW);
-
-  gl.disable(gl.DEPTH_TEST);
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.ONE, gl.ONE);   /* additive; shaders emit premultiplied colour */
-  gl.clearColor(0, 0, 0, 0);
-
-  /* ----------------------------------------------------------------- state */
-
-  var proj = mat4(), view = mat4();
-  var dpr = 1, width = 1, height = 1;
-  var pointerX = 0, pointerY = 0, targetX = 0, targetY = 0;
-  var offsetX = 0;
-
-  function maxPixelRatio() { return light ? 1.25 : 1.75; }
-
-  function resize() {
-    var rect = canvas.getBoundingClientRect();
-    if (!rect.width || !rect.height) return false;
-    dpr = Math.min(window.devicePixelRatio || 1, maxPixelRatio());
-    width = Math.round(rect.width * dpr);
-    height = Math.round(rect.height * dpr);
-    if (canvas.width !== width || canvas.height !== height) {
-      canvas.width = width;
-      canvas.height = height;
-    }
-    gl.viewport(0, 0, width, height);
-    perspective(proj, 0.95, rect.width / rect.height, 0.1, 40);
-    /* Wide stages have an empty right half; sit the structure there rather
-     * than behind the headline. Narrow ones keep it centred. */
-    offsetX = rect.width > 900 ? 1.5 : 0;
-    return true;
-  }
-
-  function updateParticles(dt) {
-    for (var i = 0; i < particles.length; i++) {
-      var q = particles[i];
-      q.t += dt * q.speed;
-      while (q.t >= 1) {
-        q.t -= 1;
-        var arrived = edges[q.e].b;
-        var next = outgoing[arrived];
-        if (next.length) {
-          q.e = next[Math.floor(rand() * next.length)];
-        } else {
-          /* Reached the store. Re-enter from the outermost boundary. */
-          var first = layerRanges[0];
-          var from = first[0] + Math.floor(rand() * (first[1] - first[0]));
-          var opts2 = outgoing[from];
-          q.e = opts2.length ? opts2[Math.floor(rand() * opts2.length)] : 0;
-        }
-      }
-      writeParticle(i, q);
-    }
-  }
-
-  function writeParticle(i, q) {
-    var e = edges[q.e], A = nodes[e.a], B = nodes[e.b];
-    /* Ease toward each boundary so crossings read as arrivals, not a constant
-     * drift, and brighten mid-flight. */
-    var t = q.t * q.t * (3 - 2 * q.t);
-    var o = i * POINT_STRIDE;
-    particleArray[o]     = A.x + (B.x - A.x) * t;
-    particleArray[o + 1] = A.y + (B.y - A.y) * t;
-    particleArray[o + 2] = A.z + (B.z - A.z) * t;
-    particleArray[o + 3] = A.color[0] + (B.color[0] - A.color[0]) * t;
-    particleArray[o + 4] = A.color[1] + (B.color[1] - A.color[1]) * t;
-    particleArray[o + 5] = A.color[2] + (B.color[2] - A.color[2]) * t;
-    particleArray[o + 6] = 15.0;
-    particleArray[o + 7] = 0.45 + 0.55 * Math.sin(q.t * Math.PI);
-    particleArray[o + 8] = 0.0;      /* particles do not twinkle */
-  }
-
-  function bindPoints(buffer) {
-    var s = POINT_STRIDE * 4;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.enableVertexAttribArray(pl.aPos);   gl.vertexAttribPointer(pl.aPos, 3, gl.FLOAT, false, s, 0);
-    gl.enableVertexAttribArray(pl.aColor); gl.vertexAttribPointer(pl.aColor, 3, gl.FLOAT, false, s, 12);
-    gl.enableVertexAttribArray(pl.aSize);  gl.vertexAttribPointer(pl.aSize, 1, gl.FLOAT, false, s, 24);
-    gl.enableVertexAttribArray(pl.aAlpha); gl.vertexAttribPointer(pl.aAlpha, 1, gl.FLOAT, false, s, 28);
-    gl.enableVertexAttribArray(pl.aSeed);  gl.vertexAttribPointer(pl.aSeed, 1, gl.FLOAT, false, s, 32);
-  }
-
-  function draw(time) {
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    var yaw = 0.42 * Math.sin(time * 0.11) + pointerX * 0.30;
-    var pitch = 0.16 + 0.07 * Math.sin(time * 0.083) - pointerY * 0.20;
-    viewMatrix(view, yaw, pitch, 5.4, offsetX);
-
-    gl.useProgram(lineProg);
-    gl.uniformMatrix4fv(ll.uProj, false, proj);
-    gl.uniformMatrix4fv(ll.uView, false, view);
-    var ls = LINE_STRIDE * 4;
-    gl.bindBuffer(gl.ARRAY_BUFFER, lineBuf);
-    gl.enableVertexAttribArray(ll.aPos);   gl.vertexAttribPointer(ll.aPos, 3, gl.FLOAT, false, ls, 0);
-    gl.enableVertexAttribArray(ll.aColor); gl.vertexAttribPointer(ll.aColor, 3, gl.FLOAT, false, ls, 12);
-    gl.enableVertexAttribArray(ll.aAlpha); gl.vertexAttribPointer(ll.aAlpha, 1, gl.FLOAT, false, ls, 24);
-    gl.drawArrays(gl.LINES, 0, lineArray.length / LINE_STRIDE);
-
-    gl.useProgram(pointProg);
-    gl.uniformMatrix4fv(pl.uProj, false, proj);
-    gl.uniformMatrix4fv(pl.uView, false, view);
-    gl.uniform1f(pl.uScale, 2.6 * dpr);
-    gl.uniform1f(pl.uTime, time);
-
-    bindPoints(nodeBuf);
-    gl.drawArrays(gl.POINTS, 0, nodes.length);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, particleBuf);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, particleArray);
-    bindPoints(particleBuf);
-    gl.drawArrays(gl.POINTS, 0, particles.length);
-  }
-
-  /* ------------------------------------------------------------- lifecycle */
-
-  var running = false, rafId = 0, last = 0, clock = 0;
-  var visible = true, onScreen = true, contextLost = false, started = false;
-  var slowFrames = 0, sampled = 0;
-  var STATIC_TIME = 2.4;   /* the pose the reduced-motion frame is held at */
-
-  function drawStatic() {
-    for (var i = 0; i < particles.length; i++) writeParticle(i, particles[i]);
-    draw(STATIC_TIME);
-  }
-
-  function frame(now) {
-    rafId = 0;
-    if (!running) return;
-    var dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016;
-    last = now;
-    clock += dt;
-
-    updateParticles(dt);
-    draw(clock);
-
-    /* If the device cannot keep up, drop to the light build once rather than
-     * grinding. Sampled over the first few seconds only. */
-    if (!light && sampled < 90) {
-      sampled++;
-      if (dt > 0.034) slowFrames++;
-      if (sampled === 90 && slowFrames > 45) downgrade();
-    }
-
-    rafId = window.requestAnimationFrame(frame);
-  }
-
-  function downgrade() {
-    light = true;
-    particles.length = Math.min(particles.length, 40);
-    particleArray = particleArray.subarray(0, particles.length * POINT_STRIDE);
-    resize();
-  }
-
-  function start() {
-    if (running || reduceMotion || contextLost || !started) return;
-    running = true;
-    last = 0;
-    if (!rafId) rafId = window.requestAnimationFrame(frame);
-  }
-
-  function stop() {
-    running = false;
-    if (rafId) { window.cancelAnimationFrame(rafId); rafId = 0; }
-  }
-
-  function sync() {
-    if (visible && onScreen) start(); else stop();
-  }
-
-  /* The canvas can measure zero when this first runs — a background tab, a
-   * collapsed ancestor, a print preview. That is not a reason to give up
-   * permanently: stay quiet, and light up on the first real size we are given. */
-  function measure() {
-    if (contextLost || !resize()) return;
-    if (!started) {
-      started = true;
-      canvas.classList.add('is-live');
-    }
-    if (reduceMotion) drawStatic(); else sync();
-  }
-
-  canvas.addEventListener('webglcontextlost', function (ev) {
-    ev.preventDefault();
-    contextLost = true;
-    stop();
-    canvas.classList.remove('is-live');
-  }, false);
-
-  var resizeTimer = 0;
-  function onResize() {
-    window.clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(function () {
-      /* A rotation or a window drag can move us across the light-build
-       * threshold. We only ever step down, never back up. */
-      if (!light && wantsLightBuild()) downgrade();
-      measure();
-    }, 150);
-  }
-
-  window.addEventListener('resize', onResize, { passive: true });
-  if (window.ResizeObserver) new window.ResizeObserver(onResize).observe(canvas);
-
-  if (!reduceMotion) {
-    document.addEventListener('visibilitychange', function () {
-      visible = !document.hidden;
-      sync();
-    });
-
-    if (window.IntersectionObserver) {
-      new window.IntersectionObserver(function (entries) {
-        onScreen = entries[0].isIntersecting;
-        sync();
-      }, { threshold: 0 }).observe(canvas);
-    }
-
-    /* Pointer parallax is a desktop nicety; touch devices scroll instead. */
-    if (!light && window.matchMedia && window.matchMedia('(pointer: fine)').matches) {
-      window.addEventListener('pointermove', function (ev) {
-        targetX = (ev.clientX / window.innerWidth) * 2 - 1;
-        targetY = (ev.clientY / window.innerHeight) * 2 - 1;
-      }, { passive: true });
-      window.setInterval(function () {
-        pointerX += (targetX - pointerX) * 0.06;
-        pointerY += (targetY - pointerY) * 0.06;
-      }, 33);
-    }
-  }
-
-  measure();
 })();
+
+const varPos = gpu.addVariable('texturePosition', POSITION_FRAG, posTex);
+const varVel = gpu.addVariable('textureVelocity', VELOCITY_FRAG, velTex);
+gpu.setVariableDependencies(varPos, [varPos, varVel]);
+gpu.setVariableDependencies(varVel, [varPos, varVel]);
+varPos.material.uniforms.uDelta = { value: 0 };
+varPos.material.uniforms.uTime = { value: 0 };
+varVel.material.uniforms.uDelta = { value: 0 };
+varVel.material.uniforms.uTime = { value: 0 };
+
+const gpuError = gpu.init();
+if (gpuError !== null) {
+  /* Almost always missing float render target support. */
+  renderer.dispose();
+  throw new Error('GPGPU unavailable: ' + gpuError);
+}
+
+/* ---------------------------------------------------- drawing the particles */
+
+const refs = new Float32Array(COUNT * 2);
+for (let y = 0; y < SIM; y++) {
+  for (let x = 0; x < SIM; x++) {
+    const i = y * SIM + x;
+    refs[i * 2] = (x + 0.5) / SIM;
+    refs[i * 2 + 1] = (y + 0.5) / SIM;
+  }
+}
+
+const pointGeo = new THREE.BufferGeometry();
+pointGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(COUNT * 3), 3));
+pointGeo.setAttribute('aRef', new THREE.BufferAttribute(refs, 2));
+
+const pointMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uPositions: { value: null },
+    uScale: { value: 1 },
+    uFront: { value: FRONT_Z },
+    uSpan: { value: FRONT_Z - BACK_Z },
+    uNear: { value: new THREE.Color(0x3fcf8e) },
+    uMid: { value: new THREE.Color(0x38bdf8) },
+    uFar: { value: new THREE.Color(0xa78bfa) }
+  },
+  vertexShader: `
+    attribute vec2 aRef;
+    uniform sampler2D uPositions;
+    uniform float uScale;
+    uniform float uFront;
+    uniform float uSpan;
+    uniform vec3 uNear;
+    uniform vec3 uMid;
+    uniform vec3 uFar;
+    varying vec3 vColor;
+    varying float vAlpha;
+    void main() {
+      vec4 p = texture2D(uPositions, aRef);
+      vec4 mv = modelViewMatrix * vec4(p.xyz, 1.0);
+      gl_Position = projectionMatrix * mv;
+      float depth = max(-mv.z, 0.2);
+      gl_PointSize = clamp(uScale / depth, 1.0, 9.0);
+      /* Colour by how deep into the stack the particle has travelled. */
+      float t = clamp((uFront - p.z) / uSpan, 0.0, 1.0);
+      vColor = t < 0.5 ? mix(uNear, uMid, t * 2.0) : mix(uMid, uFar, (t - 0.5) * 2.0);
+      /* Fade in on spawn and out on death so nothing pops. */
+      vAlpha = smoothstep(0.0, 0.18, p.w) * smoothstep(1.0, 0.72, p.w) * 0.42;
+      vAlpha *= 1.0 - smoothstep(14.0, 34.0, depth);
+    }
+  `,
+  fragmentShader: `
+    precision mediump float;
+    varying vec3 vColor;
+    varying float vAlpha;
+    void main() {
+      vec2 d = gl_PointCoord - vec2(0.5);
+      float r = dot(d, d);
+      if (r > 0.25) discard;
+      float a = smoothstep(0.25, 0.0, r) * vAlpha;
+      gl_FragColor = vec4(vColor * a, a);
+    }
+  `,
+  transparent: true,
+  depthWrite: false,
+  depthTest: false,
+  blending: THREE.AdditiveBlending
+});
+
+const points = new THREE.Points(pointGeo, pointMat);
+points.frustumCulled = false;
+world.add(points);
+
+/* ------------------------------------------------------------ composition */
+
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+renderPass.clearAlpha = 0;
+composer.addPass(renderPass);
+
+let bloomPass = null;
+if (!light) {
+  bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.72, 0.6, 0.25);
+  composer.addPass(bloomPass);
+}
+composer.addPass(new OutputPass());
+
+/* ------------------------------------------------------------- dimensions */
+
+let dpr = 1;
+function maxPixelRatio() { return light ? 1.25 : 1.75; }
+
+function resize() {
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return false;
+  dpr = Math.min(window.devicePixelRatio || 1, maxPixelRatio());
+  renderer.setPixelRatio(dpr);
+  renderer.setSize(rect.width, rect.height, false);
+  composer.setPixelRatio(dpr);
+  composer.setSize(rect.width, rect.height);
+  camera.aspect = rect.width / rect.height;
+  camera.updateProjectionMatrix();
+  pointMat.uniforms.uScale.value = rect.height * 0.014 * dpr;
+  /* Wide stages have an empty right half; sit the structure there rather than
+   * behind the headline. Narrow ones keep it centred. */
+  world.position.x = rect.width > 900 ? 2.1 : 0;
+  return true;
+}
+
+/* ------------------------------------------------------------ the flight */
+
+let progress = 0;
+let shownBoundary = -1;
+let pointerX = 0, pointerY = 0, targetX = 0, targetY = 0;
+
+function scrollProgress() {
+  const span = hero.offsetHeight - window.innerHeight;
+  if (span <= 0) return 0;
+  return Math.min(Math.max(-hero.getBoundingClientRect().top / span, 0), 1);
+}
+
+function updateLabel(p) {
+  if (!label) return;
+  const i = Math.min(BOUNDARIES.length - 1, Math.floor(p * BOUNDARIES.length));
+  if (i === shownBoundary) return;
+  shownBoundary = i;
+  label.textContent = BOUNDARIES[i].name;
+}
+
+function place(p, time) {
+  /* Ease so each boundary reads as an arrival rather than a constant drift. */
+  const eased = p * p * (3 - 2 * p);
+  camera.position.z = CAMERA_START + (CAMERA_END - CAMERA_START) * eased;
+  camera.position.x = Math.sin(time * 0.13) * 0.5 + pointerX * 0.9;
+  camera.position.y = Math.cos(time * 0.11) * 0.34 - pointerY * 0.6;
+  camera.lookAt(0, 0, camera.position.z - 6);
+  camera.rotation.z = Math.sin(time * 0.07) * 0.035;
+  ringGroup.rotation.z = time * 0.02;
+
+  for (let i = 0; i < ringMats.length; i++) {
+    const m = ringMats[i];
+    const near = Math.max(0, 1 - Math.abs(camera.position.z - m.z) / 3.5);
+    m.ring.opacity = 0.85 + near * near * 1.1;
+    m.spokes.opacity = 0.55 + near * near * 0.9;
+  }
+}
+
+function draw(time) {
+  pointMat.uniforms.uPositions.value = gpu.getCurrentRenderTarget(varPos).texture;
+  place(progress, time);
+  composer.render();
+}
+
+/* ------------------------------------------------------------- lifecycle */
+
+let running = false, rafId = 0, last = 0, clock = 0;
+let visible = true, onScreen = true, contextLost = false, started = false;
+let slowFrames = 0, sampled = 0;
+
+function step(dt, time) {
+  varPos.material.uniforms.uDelta.value = dt;
+  varVel.material.uniforms.uDelta.value = dt;
+  varPos.material.uniforms.uTime.value = time;
+  varVel.material.uniforms.uTime.value = time;
+  gpu.compute();
+}
+
+function frame(now) {
+  rafId = 0;
+  if (!running) return;
+  const dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016;
+  last = now;
+  clock += dt;
+
+  progress = scrollProgress();
+  updateLabel(progress);
+  step(dt, clock);
+  draw(clock);
+
+  if (!light && sampled < 90) {
+    sampled++;
+    if (dt > 0.034) slowFrames++;
+    if (sampled === 90 && slowFrames > 45) downgrade();
+  }
+
+  rafId = window.requestAnimationFrame(frame);
+}
+
+/* Only ever step down, and only once: bloom goes first, then pixel ratio. */
+function downgrade() {
+  if (light) return;
+  light = true;
+  if (bloomPass) {
+    composer.removePass(bloomPass);
+    bloomPass.dispose();
+    bloomPass = null;
+  }
+  resize();
+}
+
+function start() {
+  if (running || reduceMotion || contextLost || !started) return;
+  running = true;
+  last = 0;
+  if (!rafId) rafId = window.requestAnimationFrame(frame);
+}
+
+function stop() {
+  running = false;
+  if (rafId) { window.cancelAnimationFrame(rafId); rafId = 0; }
+}
+
+function sync() {
+  if (visible && onScreen) start(); else stop();
+}
+
+function drawStatic() {
+  /* Let the field spread out of its seeded disc, then hold that pose. */
+  for (let i = 0; i < 90; i++) step(0.02, i * 0.02);
+  progress = 0.18;
+  updateLabel(progress);
+  draw(2.4);
+}
+
+/* The canvas can measure zero when this first runs — a background tab, a
+ * collapsed ancestor, a print preview. That is not a reason to give up
+ * permanently: stay quiet, and light up on the first real size we are given. */
+function measure() {
+  if (contextLost || !resize()) return;
+  if (!started) {
+    started = true;
+    canvas.classList.add('is-live');
+    /* The taller scrolling stage exists only when there is a flight to see. */
+    if (!reduceMotion) hero.classList.add('hero--flight');
+  }
+  if (reduceMotion) drawStatic(); else sync();
+}
+
+canvas.addEventListener('webglcontextlost', (ev) => {
+  ev.preventDefault();
+  contextLost = true;
+  stop();
+  canvas.classList.remove('is-live');
+  hero.classList.remove('hero--flight');
+}, false);
+
+let resizeTimer = 0;
+function onResize() {
+  window.clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(() => {
+    if (!light && wantsLightBuild()) downgrade();
+    measure();
+  }, 150);
+}
+
+window.addEventListener('resize', onResize, { passive: true });
+if (window.ResizeObserver) new window.ResizeObserver(onResize).observe(canvas);
+
+if (!reduceMotion) {
+  document.addEventListener('visibilitychange', () => {
+    visible = !document.hidden;
+    sync();
+  });
+
+  if (window.IntersectionObserver) {
+    new window.IntersectionObserver((entries) => {
+      onScreen = entries[0].isIntersecting;
+      sync();
+    }, { threshold: 0 }).observe(hero);
+  }
+
+  /* Pointer parallax is a desktop nicety; touch devices scroll instead. */
+  if (!light && window.matchMedia && window.matchMedia('(pointer: fine)').matches) {
+    window.addEventListener('pointermove', (ev) => {
+      targetX = (ev.clientX / window.innerWidth) * 2 - 1;
+      targetY = (ev.clientY / window.innerHeight) * 2 - 1;
+    }, { passive: true });
+    window.setInterval(() => {
+      pointerX += (targetX - pointerX) * 0.05;
+      pointerY += (targetY - pointerY) * 0.05;
+    }, 33);
+  }
+}
+
+measure();
+
+}
+
+try {
+  boot();
+} catch (err) {
+  /* The hero is decorative. The CSS stage behind the canvas already carries
+   * it, the content and every link are plain HTML, and the compact
+   * one-screen hero is the default, so there is nothing to undo here. */
+}

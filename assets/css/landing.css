@@ -89,21 +89,37 @@ a { color: var(--accent); text-underline-offset: 3px; }
 
 /* =============================================================== the stage */
 
+/* `.hero` only supplies scroll distance; `.hero-stage` is what you look at.
+ * Without the flight the two are the same height and the stage never sticks,
+ * so every fallback keeps a compact one-screen hero and reaches the content
+ * immediately. `overflow` lives on the stage — putting it on the wrapper
+ * would stop `position: sticky` working at all. */
 .hero {
   position: relative;
-  isolation: isolate;
-  min-height: 100vh;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
   background: var(--stage-0);
   color: var(--on-stage);
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+/* Two screens of scroll: one to fly through the four boundaries, then the
+ * content. Applied by script only once the visual is confirmed running. */
+.hero--flight { height: 200svh; }
+
+.hero-stage {
+  position: sticky;
+  top: 0;
+  isolation: isolate;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
 /* Painted with CSS alone, so it stands on its own with JavaScript disabled,
  * with WebGL unavailable, or while the canvas is still initialising. */
-.hero::before {
+.hero-stage::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -116,7 +132,7 @@ a { color: var(--accent); text-underline-offset: 3px; }
 }
 
 /* A faint grid so the empty half of the stage still reads as constructed. */
-.hero::after {
+.hero-stage::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -156,6 +172,34 @@ a { color: var(--accent); text-underline-offset: 3px; }
 }
 
 .topbar, .hero-body, .scroll-cue { position: relative; z-index: 3; }
+
+/* Which boundary the camera is passing through. Empty until the flight
+ * starts, and absolutely placed so it never affects the fallback layout. */
+.hero-boundary {
+  position: absolute;
+  right: var(--pad);
+  bottom: 22px;
+  z-index: 3;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-stage-dim);
+  pointer-events: none;
+}
+.hero-boundary span { position: relative; padding-left: 18px; }
+.hero-boundary span:empty { display: none; }
+.hero-boundary span::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  width: 8px; height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 10px var(--mint);
+}
 
 .topbar {
   display: flex;
