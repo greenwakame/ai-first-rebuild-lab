@@ -153,6 +153,75 @@
   </div>
 </section>
 
+<!-- ============================================================== proof -->
+<section id="proof">
+  <div class="wrap">
+    <p class="kicker reveal">Proof</p>
+    <h2 class="reveal">壊してみてください。</h2>
+    <p class="section-lede reveal">1つの要求IDは、5箇所に現れていなければなりません。仕様、台帳、コミット、実装、テスト。どれか1つだけを動かすと検出され、そこで止まります。実際の要求で試せます。</p>
+
+    <div class="trace reveal" id="trace">
+      <ol class="trace-chain">
+        <li class="station">
+          <span class="st-head"><span class="st-idx">01</span><span class="st-name">仕様</span></span>
+          <code class="st-body">- [x] `REQ-MEMBER-INTRO-001` 一覧responseは許可されたsummaryだけを含み、自己紹介全文を含まない</code>
+          <span class="st-src">requirements-md.md の実例（逐語）</span>
+        </li>
+        <li class="station">
+          <span class="st-head"><span class="st-idx">02</span><span class="st-name">台帳</span></span>
+          <code class="st-body">status: implemented
+kind:   requirement</code>
+          <span class="st-src">registry.yaml は非公開。規則が読む2項目のみ</span>
+        </li>
+        <li class="station">
+          <span class="st-head"><span class="st-idx">03</span><span class="st-name">コミット</span></span>
+          <code class="st-body">Requirement: REQ-MEMBER-INTRO-001</code>
+          <span class="st-src">trailer（任意）</span>
+        </li>
+        <li class="station">
+          <span class="st-head"><span class="st-idx">04</span><span class="st-name">実装</span></span>
+          <code class="st-body">// @req REQ-MEMBER-INTRO-001</code>
+          <span class="st-src">implemented なら必須</span>
+        </li>
+        <li class="station">
+          <span class="st-head"><span class="st-idx">05</span><span class="st-name">テスト</span></span>
+          <code class="st-body">// @req REQ-MEMBER-INTRO-001</code>
+          <span class="st-src">implemented なら必須</span>
+        </li>
+      </ol>
+
+      <!-- The passing state is the truth for the chain as written above, so it
+           is authored here rather than injected. Script replaces it on a break. -->
+      <p class="readout" id="trace-readout" role="status" aria-live="polite"><span class="ro-rule ok">req:check</span><span class="sev ok">pass</span><span class="ro-exit">exit 0</span><span class="ro-note">5箇所すべてでIDが一致している。</span></p>
+
+      <div class="trace-controls">
+        <span class="tc-label">壊す</span>
+        <button type="button" data-break="spec" aria-pressed="false">仕様だけを書き換える</button>
+        <button type="button" data-break="regress" aria-pressed="false">status を下げる</button>
+        <button type="button" data-break="marker" aria-pressed="false">実装のマーカーを外す</button>
+        <button type="button" class="tc-reset" data-reset>戻す</button>
+      </div>
+    </div>
+
+    <div class="callout reveal">
+      <p><strong>2つめの操作が、この仕組みの核心です。</strong>「仕様のほうを書き換えて辻褄を合わせる」「状態を下げて警告を黙らせる」は、生成AIが仕様とコードの両方を書く体制で最も起こりやすい失敗です。<strong>その回避行動自体を <code>D-REGRESS</code> で検出します。</strong></p>
+      <p><strong>そして、検出したらエージェントは整合を取らずに停止し、人へ報告します。</strong>検出スクリプトに <code>--fix</code> にあたる機能はありません。</p>
+    </div>
+
+    <h3 class="reveal sub">この仕組みが検出できないこと</h3>
+    <p class="section-lede reveal">限界は規約本文に書いてあります。以下はすべてその引用です。</p>
+    <ul class="limits reveal">
+      <li>仕様とコードを<strong>同一 Pull Request で同時に書き換えれば通過します。</strong>検出できるのは共変更規約の違反であって、意味の一致ではありません。</li>
+      <li><code>D-CODE</code> は意味を変えないリファクタでも発火します。機械的に除外する信頼できる方法が無いため、<strong>恒久的に warning に留め、ブロックへ昇格させません。</strong></li>
+      <li>参照先 ADR の実在は確認しますが、<strong>ADR 本文が要求を実際に満たしているかは機械検証しません。その判断は人のレビューに残ります。</strong></li>
+    </ul>
+
+    <p class="reveal" style="margin-top:28px">
+      <a href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/reference/requirements-md.md">規約の全文を読む →</a>
+    </p>
+  </div>
+</section>
+
 <!-- ========================================================== the diagrams -->
 <section>
   <div class="wrap">
@@ -311,6 +380,7 @@
 </footer>
 
 <script type="module" src="/ai-first-rebuild-lab/assets/js/hero.js"></script>
+<script src="/ai-first-rebuild-lab/assets/js/trace.js" defer></script>
 <script>
 /* Reveal-on-scroll. The `.js` class above is what hides these in the first
  * place, so with JavaScript off every section is simply visible. */

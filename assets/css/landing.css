@@ -33,6 +33,11 @@
   --accent: #0f766e;
   --accent-soft: #effcf9;
 
+  /* Severity. Deliberately not derived from the accent: these carry meaning. */
+  --danger: #b3261e;
+  --danger-soft: #fdeceb;
+  --warn: #8a5a00;
+
   --measure: 68rem;
   --pad: clamp(20px, 5vw, 40px);
   --radius: 14px;
@@ -52,6 +57,10 @@
     --line-strong: #3b3b3d;
     --accent: #5eead4;
     --accent-soft: #0b2b28;
+
+    --danger: #ff8a76;
+    --danger-soft: #2e1512;
+    --warn: #e2a84a;
   }
 }
 
@@ -576,4 +585,230 @@ a.card .go {
   .js .reveal { opacity: 1; transform: none; }
   .scroll-cue .arrow { animation: none; }
   #hero-canvas { opacity: 1; transition: none; }
+}
+
+/* ====================================================== traceability demo */
+
+/* Five sites one requirement ID has to reach, drawn as a chain that either
+ * carries through or parts at the point that went wrong. The connectors are
+ * scaled pseudo-elements rather than SVG, so the whole thing reflows from a
+ * row to a column on narrow screens without any path maths. */
+
+.trace {
+  --sev: var(--accent);
+  margin: 8px 0 0;
+}
+
+.trace-chain {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0 26px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.station {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  transition: border-color .25s ease, box-shadow .25s ease;
+}
+
+/* The connector to the next station.
+ *
+ * Connected is the default. A chain drawn at zero would say the requirement
+ * is broken, which is the opposite of the truth, so the undrawn state is
+ * reached only when script has said it intends to animate (`is-armed`) — and
+ * `is-live` then draws it. No script, no observer, reduced motion: connected. */
+.station:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: 26px;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--accent);
+  transform: scaleX(1);
+  transform-origin: left center;
+  transition: transform .34s ease, background-color .18s ease;
+}
+.trace.is-armed .station:not(:last-child)::after { transform: scaleX(0); }
+.trace.is-armed.is-live .station:not(:last-child)::after { transform: scaleX(1); }
+
+.trace.is-armed.is-live .station:nth-child(1)::after { transition-delay: .05s; }
+.trace.is-armed.is-live .station:nth-child(2)::after { transition-delay: .19s; }
+.trace.is-armed.is-live .station:nth-child(3)::after { transition-delay: .33s; }
+.trace.is-armed.is-live .station:nth-child(4)::after { transition-delay: .47s; }
+
+/* A cut connector snaps rather than eases: this should read as a fault. */
+.station.is-cut::after {
+  transform: scaleX(.42);
+  background: var(--danger);
+  transition: transform .18s cubic-bezier(.2, .9, .3, 1), background-color .18s ease;
+  transition-delay: 0s;
+}
+
+.station.is-broken {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger);
+}
+
+.st-head { display: flex; align-items: baseline; gap: 8px; }
+.st-idx {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.st-name { font-size: 14px; font-weight: 600; }
+
+.st-body {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px 10px;
+  flex: 1;
+}
+.st-body .chg { color: var(--danger); font-weight: 600; }
+.st-body .gone { color: var(--danger); text-decoration: line-through; opacity: .65; }
+
+.st-src { font-size: 11.5px; line-height: 1.5; color: var(--text-muted); }
+
+/* ---------------------------------------------------------- the readout */
+
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 22px 0 0;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--surface);
+  transition: border-left-color .2s ease;
+}
+.trace.is-failing .readout { border-left-color: var(--danger); }
+
+.ro-rule {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--danger);
+  letter-spacing: .02em;
+}
+.ro-rule.ok { color: var(--accent); }
+
+.ro-exit {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ro-note { flex: 1 1 20rem; font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+
+.sev {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.sev.e  { color: var(--danger); background: var(--danger-soft); }
+.sev.ok { color: var(--accent); background: var(--accent-soft); }
+
+/* ---------------------------------------------------------- the controls */
+
+/* Only useful with scripting; without it the chain still reads intact. */
+.trace-controls { display: none; }
+.js .trace-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 0;
+}
+
+.tc-label {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-right: 2px;
+}
+
+.trace-controls button {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color .18s ease, background-color .18s ease, color .18s ease;
+}
+.trace-controls button:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+.trace-controls button[aria-pressed="true"] {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 600;
+}
+.trace-controls .tc-reset { margin-left: auto; }
+.trace-controls .tc-reset:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.trace-controls button:disabled { opacity: .4; cursor: default; }
+
+/* ---------------------------------------------------------- the limits */
+
+h3.sub { font-size: 19px; margin: 52px 0 10px; }
+
+.limits { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.limits li {
+  padding: 15px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--warn);
+  border-radius: 0 9px 9px 0;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+@media (max-width: 900px) {
+  .trace-chain { grid-template-columns: 1fr; gap: 22px 0; }
+  .station:not(:last-child)::after {
+    left: 50%; top: 100%;
+    width: 2px; height: 22px;
+    margin: 0 0 0 -1px;
+    transform: scaleY(0);
+    transform-origin: top center;
+  }
+  .station:not(:last-child)::after { transform: scaleY(1); }
+  .trace.is-armed .station:not(:last-child)::after { transform: scaleY(0); }
+  .trace.is-armed.is-live .station:not(:last-child)::after { transform: scaleY(1); }
+  .station.is-cut::after { transform: scaleY(.42); }
+  .trace-controls .tc-reset { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .station::after { transition: none !important; transition-delay: 0s !important; }
 }
