@@ -22,7 +22,7 @@
    * exactly the thing that makes an embed feel boxed in. It is same-origin,
    * so the frame is sized to what the diagram actually needs instead. */
   var MIN_HEIGHT = 420;
-  var MAX_HEIGHT = 1100;
+  var MAX_HEIGHT = 1600;
   var loaded = false;
   var frame = null;
 
@@ -31,55 +31,56 @@
   }
 
   /* The diagram's own layout uses the viewport height, so changing the frame
-   * height can change what it reports. Measure again after setting it; two
-   * passes settle it, and the clamp keeps a runaway page from taking over the
-   * section — if it is clamped the inner scrollbar comes back, which is the
-   * right outcome rather than a frame of unbounded height. */
+   * height can change what it reports. The clamp keeps a runaway page from
+   * taking over the section; the deadband stops us rewriting the style for
+   * sub-pixel churn. */
   function fit() {
     if (!frame) return;
     var doc;
     try { doc = frame.contentDocument; } catch (err) { return; }
     if (!doc || !doc.documentElement) return;
+
     var want = doc.documentElement.scrollHeight;
     if (!want) return;
-    frame.style.height = Math.min(Math.max(want, MIN_HEIGHT), MAX_HEIGHT) + 'px';
+    want = Math.min(Math.max(want, MIN_HEIGHT), MAX_HEIGHT);
+
+    var have = frame.getBoundingClientRect().height;
+    if (Math.abs(want - have) <= 2) return;
+    frame.style.height = want + 'px';
   }
 
-  function settle() {
-    fit();
-    window.setTimeout(function () { fit(); watchInner(); }, 250);
-  }
-
-  /* The diagram is an application: opening a panel or switching its theme
-   * changes how tall it is, with no window resize involved. Same-origin, so
-   * watch it and keep the frame matched.
+  /* Watching elements does not work here. The body carries min-height:100vh so
+   * it stays exactly as tall as the frame, and the diagram's own container is
+   * height-constrained — content grows straight past both without either box
+   * changing, which is precisely the case that leaves a scrollbar behind. What
+   * actually moves is documentElement.scrollHeight, so that is what we read.
    *
-   * Setting the height changes the viewport the diagram lays out against, so
-   * this could chase itself. The deadband absorbs sub-pixel churn, and the
-   * budget stops it outright if it ever fails to converge — a slightly wrong
-   * height is a far better failure than a loop. */
-  var watching = false;
-  var budget = 24;
+   * The diagram draws itself after its scripts run, so this polls while that
+   * settles and then stops. It is a handful of reads over a few seconds, not a
+   * permanent loop. */
+  /* One-way in practice: once the frame is tall, the inner body fills it
+   * (min-height:100vh), so scrollHeight can never report less than the frame
+   * and the height does not come back down within a session. Left as is —
+   * some extra space below the diagram is a far better outcome than the
+   * scrollbar this exists to remove, and a reload starts from the real
+   * measurement again. */
+  var polling = 0;
 
-  function watchInner() {
-    if (watching || !frame || !window.ResizeObserver) return;
-    var doc;
-    try { doc = frame.contentDocument; } catch (err) { return; }
-    if (!doc || !doc.body) return;
-    watching = true;
-
-    var ro = new window.ResizeObserver(function () {
-      if (budget <= 0) { ro.disconnect(); return; }
-      var want = doc.documentElement.scrollHeight;
-      var have = frame.getBoundingClientRect().height;
-      if (Math.abs(want - have) > 4) { budget--; fit(); }
-    });
-    ro.observe(doc.body);
+  function poll(times, every) {
+    window.clearInterval(polling);
+    var left = times;
+    fit();
+    polling = window.setInterval(function () {
+      fit();
+      if (--left <= 0) window.clearInterval(polling);
+    }, every);
   }
 
-  /* Interacting with the diagram is expected to change its height, so give the
-   * budget back when the visitor does something in it. */
-  function refillBudget() { budget = 24; }
+  function settle() { poll(25, 400); }
+
+  /* Opening a panel or switching the diagram's theme changes its height with
+   * no resize involved, so watch for a hand on it and re-measure after. */
+  function nudge() { poll(6, 300); }
 
   function mount() {
     if (loaded || !fits()) return;
@@ -94,8 +95,9 @@
       settle();
       try {
         var d = frame.contentDocument;
-        d.addEventListener('click', refillBudget, true);
-        d.addEventListener('keydown', refillBudget, true);
+        d.addEventListener('click', nudge, true);
+        d.addEventListener('keydown', nudge, true);
+        d.addEventListener('wheel', nudge, { capture: true, passive: true });
       } catch (err) { /* nothing to attach to */ }
     });
     slot.appendChild(frame);
