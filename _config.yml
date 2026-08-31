@@ -1,48 +1,24 @@
 # GitHub Pages / Jekyll configuration
 #
-# The site is served from the `main` branch root so that relative links resolve
-# the same way on github.com and on the published site. Rendering relies only on
-# plugins GitHub Pages enables by default — no theme gem, no remote theme, no
-# build step, and no GitHub Actions workflow.
+# Served from the `main` branch root so relative links resolve the same way on
+# github.com and on the published site. Rendering relies only on the plugins
+# GitHub Pages enables by default: no theme gem, no remote theme, no build step,
+# no GitHub Actions workflow.
 #
-# Markdown files carry no front matter on purpose: `jekyll-optional-front-matter`
+# Markdown files carry no front matter on purpose — `jekyll-optional-front-matter`
 # renders them anyway, and `docs/reference/*.md` must stay verbatim copies of the
-# development repository's originals.
+# development repository's originals. The layout is applied through `defaults`
+# instead of being written into the documents.
 
 title: AI-first rebuild lab
 description: レガシー社内業務システムを Next.js・Rust・Supabase で作り直す取り組みの公開入口
-lang: ja
 
 url: https://greenwakame.github.io
 baseurl: /ai-first-rebuild-lab
 
-markdown: kramdown
-kramdown:
-  input: GFM
-  hard_wrap: false
-  syntax_highlighter: rouge
-
-# Apply the layout by path rather than writing front matter into the documents.
-# `index.html` has no front matter, so it stays a static file and keeps its own
-# markup — that is the landing page.
 defaults:
   - scope:
       path: ""
       type: pages
     values:
       layout: page
-  # The generated diagrams are self-contained documents. They must be copied
-  # through untouched.
-  - scope:
-      path: docs/diagrams
-    values:
-      layout: null
-
-# README.md stays part of the site: documents link back to it with `../README.md`,
-# and `jekyll-relative-links` rewrites those to the rendered page. It does not
-# become the index, because `index.html` already exists at the root.
-#
-# Jekyll skips dot-directories, which would leave the README's banner broken on
-# the published page, so that one asset is included explicitly.
-include:
-  - .github/banner.svg
