@@ -3,81 +3,322 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI-first rebuild lab</title>
-<meta name="description" content="レガシー社内業務システムを Next.js・Rust・Supabase で作り直す取り組みの公開入口。">
-<!-- This file is a static page: Jekyll copies it through without a layout, so
-     paths are absolute and no Liquid is used. The landing page design is being
-     worked on separately; this is the signpost until it lands.
+<title>AI-first rebuild lab — レガシー業務システムを、AI と一緒に作り直す</title>
+<meta name="description" content="レガシーな社内業務システムを Next.js・Rust・Supabase でゼロから作り直しています。設計を先に固め、判断を ADR に記録し、検証してから進める — その過程を公開しています。">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://greenwakame.github.io/ai-first-rebuild-lab/">
 
-     Document links point at github.com for now: Jekyll rendering on this site
-     is not working yet, so `docs/*.md` would be served as raw text. The diagram
-     links stay on this site because those pages are self-contained HTML. -->
-<link rel="stylesheet" href="/ai-first-rebuild-lab/assets/css/site.css">
-<style>
-  .hero { max-width: 44rem; margin: 0 auto; padding: 72px 24px 8px; }
-  .hero h1 { font-size: 34px; line-height: 1.25; margin: 0 0 12px; letter-spacing: .01em; }
-  .hero .lede { font-size: 17px; color: var(--text-muted); margin: 0 0 8px; }
-  .grid {
-    max-width: 44rem; margin: 0 auto; padding: 24px 24px 0;
-    display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  }
-  .tile {
-    display: block; padding: 18px 20px; border: 1px solid var(--line);
-    border-radius: 8px; background: var(--surface); text-decoration: none; color: inherit;
-    transition: border-color .2s ease;
-  }
-  .tile:hover, .tile:focus-visible { border-color: var(--accent); }
-  .tile strong { display: block; font-size: 16px; color: var(--accent); margin-bottom: 4px; }
-  .tile span { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-</style>
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-first rebuild lab">
+<meta property="og:description" content="レガシーな社内業務システムを Next.js・Rust・Supabase でゼロから作り直しています。設計を先に固め、判断を記録し、検証してから進める。">
+<meta property="og:url" content="https://greenwakame.github.io/ai-first-rebuild-lab/">
+<meta property="og:image" content="https://greenwakame.github.io/ai-first-rebuild-lab/.github/banner.svg">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Served as a plain static file: this repository has `.nojekyll` at the root
+     and no build step, so there is no Liquid here and every internal path is
+     absolute. Document links point at github.com because Markdown is not
+     rendered on this site; the diagram links stay here because those pages are
+     self-contained HTML. Both are settled policy, not workarounds. -->
+<link rel="stylesheet" href="/ai-first-rebuild-lab/assets/css/landing.css">
+<link rel="icon" href="/ai-first-rebuild-lab/.github/banner.svg" type="image/svg+xml">
+<script>document.documentElement.className += ' js';</script>
 </head>
 <body>
-<a class="skip" href="#start">本文へ移動</a>
+<a class="skip" href="#main">本文へ移動</a>
 
-<section class="hero">
-  <h1>レガシー業務システムを、<br>AI と一緒に作り直しています。</h1>
-  <p class="lede">
-    Next.js・Rust・Supabase で社内システムを置き換える取り組みの公開入口です。
-    設計を先に固め、判断を記録し、検証してから進める — その過程を公開しています。
-  </p>
+<!-- ============================================================ the stage -->
+<header class="hero">
+  <div class="topbar">
+    <a class="brand" href="/ai-first-rebuild-lab/">
+      <span class="dot" aria-hidden="true"></span>ai-first-rebuild-lab
+    </a>
+    <a class="plain" href="https://github.com/greenwakame/ai-first-rebuild-lab">GitHub →</a>
+  </div>
+
+  <!-- Decorative. Everything below reads identically without it. -->
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="hero-veil" aria-hidden="true"></div>
+
+  <div class="hero-body">
+    <div class="hero-copy">
+      <p class="eyebrow">Next.js &nbsp;·&nbsp; Rust &nbsp;·&nbsp; Supabase</p>
+      <h1>レガシー業務システムを、<br><span class="grad">AI と一緒に</span>作り直しています。</h1>
+      <p class="lede">テストがなく、認可が独自で、手順を再現できない — そういうシステムを、検証できる最小単位で置き換えていく取り組みです。<strong>設計を先に固め、判断を記録し、検証してから進める。</strong>その過程を、判断の記録ごと公開しています。</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="/ai-first-rebuild-lab/docs/diagrams/">設計図を見る →</a>
+        <a class="btn btn-ghost" href="#join">参加方法</a>
+      </div>
+      <ul class="hero-facts">
+        <li>合成データのみ</li>
+        <li>ADR 20件以上</li>
+        <li>動かせる設計図 5枚</li>
+        <li>CC BY 4.0</li>
+      </ul>
+    </div>
+  </div>
+
+  <a class="scroll-cue" href="#main">Scroll <span class="arrow" aria-hidden="true">↓</span></a>
+</header>
+
+<main id="main">
+
+<!-- ============================================================ the hook -->
+<section>
+  <div class="wrap">
+    <p class="kicker reveal">Why it is hard</p>
+    <h2 class="reveal">簡単な題材ではありません。<br>そこが面白いところです。</h2>
+    <p class="section-lede reveal">対象はメンバー管理を中心に、経歴・スキル、現場・案件、面談、人事考課、権限管理まで広がる基幹寄りの業務システムです。一括で書き直すのではなく、機能単位の縦切りで移行しています。理由は、この3つが同時に効いてくるからです。</p>
+
+    <div class="cards">
+      <div class="card reveal">
+        <span class="num">01</span>
+        <h3>認可モデルの移行</h3>
+        <p>「管理者／一般」のような単純なロールではなく、グループとユーザー単位の例外を組み合わせた、機能・操作単位のモデルです。安易にロールへ縮約すると権限漏れが起きます。データベースの制約とクエリレベルの絞り込みまで降ろして再現します。</p>
+      </div>
+      <div class="card reveal">
+        <span class="num">02</span>
+        <h3>データ移行の検証</h3>
+        <p>旧システムには自動テストがほとんどありません。行数・チェックサム・キー関係の突合など、<strong>値そのものを見ずに</strong>移行の正しさを示す方法を、設計から起こす必要があります。</p>
+      </div>
+      <div class="card reveal">
+        <span class="num">03</span>
+        <h3>保証基準がないテスト設計</h3>
+        <p>「今まで動いていたから正しい」という前提が使えません。機能ごとに期待される挙動を明文化してからテストを書きます。何を正とするかを決めるところが仕事です。</p>
+      </div>
+    </div>
+  </div>
 </section>
 
-<div class="grid" id="start">
-  <a class="tile" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/project-overview.md">
-    <strong>プロジェクト概要</strong>
-    <span>何を作っていて、なぜ作り直すのか</span>
-  </a>
-  <a class="tile" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/architecture.md">
-    <strong>アーキテクチャ</strong>
-    <span>技術構成とサービス境界</span>
-  </a>
-  <a class="tile" href="/ai-first-rebuild-lab/docs/diagrams/">
-    <strong>設計図</strong>
-    <span>設計判断を投影した、動かせる図</span>
-  </a>
-  <a class="tile" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/development-approach.md">
-    <strong>開発の進め方</strong>
-    <span>AI-first・ADR駆動・契約優先・検証文化</span>
-  </a>
-  <a class="tile" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/how-to-join.md">
-    <strong>参加方法</strong>
-    <span>どうやって関わるか</span>
-  </a>
-  <a class="tile" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/workshop/README.md">
-    <strong>ワークショップ</strong>
-    <span>当日の流れと事前準備</span>
-  </a>
-</div>
+<!-- =========================================================== the method -->
+<section class="band-alt">
+  <div class="wrap">
+    <p class="kicker reveal">How we work</p>
+    <h2 class="reveal">人の役割が「書くこと」から<br>「検証すること」へ移ります。</h2>
+    <p class="section-lede reveal">実装は AI コーディングエージェントが行い、人が差分を検証します。それを成立させているのは、<strong>設計を先に固め、レビューを通してから実装する</strong>という順序です。この5つは、その順序をエージェントが実装する環境で保つための具体策です。</p>
+
+    <div class="pillars reveal">
+      <div class="pillar">
+        <span class="idx">01</span>
+        <h3>AI-first 開発</h3>
+        <p>共通指示を1か所へ集約し、繰り返す手順を skill へ切り出す。実装者が変わっても手順が変わらない。</p>
+      </div>
+      <div class="pillar">
+        <span class="idx">02</span>
+        <h3>ADR 駆動</h3>
+        <p>元に戻しにくい判断は必ず記録する。設計書レビューの後継にあたる仕組み。</p>
+      </div>
+      <div class="pillar">
+        <span class="idx">03</span>
+        <h3>契約優先</h3>
+        <p>OpenAPI を HTTP API 契約の正とし、型を自動生成し、CI で乖離を検出する。</p>
+      </div>
+      <div class="pillar">
+        <span class="idx">04</span>
+        <h3>要求トレーサビリティ</h3>
+        <p>受け入れ条件に機械可読な ID を与え、実装とテストへマーカーで結び、ズレを終了コードで検出する。</p>
+      </div>
+      <div class="pillar">
+        <span class="idx">05</span>
+        <h3>検証文化</h3>
+        <p>生成されただけでは完了ではない。確認できなかったことも書き残す。</p>
+      </div>
+    </div>
+
+    <div class="callout reveal">
+      <p><strong>ズレを検出したら、エージェントは整合を取らずに停止して人へ報告します。</strong>検出スクリプトに <code>--fix</code> にあたる機能はありません。</p>
+      <p>生成 AI が仕様とコードの両方を書く体制では、「仕様のほうを書き換えて辻褄を合わせる」が最も起こりやすい失敗モードだからです。整合させる判断は人に残します。</p>
+    </div>
+
+    <p class="reveal" style="margin-top:28px">
+      <a href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/development-approach.md">開発の進め方を読む →</a>
+    </p>
+  </div>
+</section>
+
+<!-- ========================================================== the diagrams -->
+<section>
+  <div class="wrap">
+    <p class="kicker reveal">Diagrams</p>
+    <h2 class="reveal">設計判断を投影した、動かせる図。</h2>
+    <p class="section-lede reveal">ADR から機械的に生成した図です。生成のたびに同じ結果になることと、配置や線の重なりを自動で検証しています。ブラウザの中でそのまま動きます — 図と ADR が食い違う場合は、ADR が正です。</p>
+
+    <ul class="diagram-note reveal">
+      <li>テーマ切替</li>
+      <li>検索</li>
+      <li>関係のたどり</li>
+      <li>拡大縮小</li>
+      <li>画像の書き出し</li>
+    </ul>
+
+    <div class="diagram-feature">
+      <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-trust-boundary.html">
+        <h3>認証・認可の trust boundary</h3>
+        <p>ブラウザから PostgreSQL までのあいだで、どこに境界があり、各所で何を検証し、何をブラウザへ渡さないか。</p>
+        <span class="go">ADR 0001 / 0004 / 0005 / 0007 / 0011 / 0012 / 0017 / 0018</span>
+      </a>
+      <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-github-delivery.html">
+        <h3>Issue から merge までの運用フロー</h3>
+        <p>起票から実装、検証、Pull Request、マージまでの順序と、各段階で満たすべき条件。どこで止まるかも示します。</p>
+        <span class="go">開発の進め方 / 要求トレーサビリティの規約</span>
+      </a>
+      <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-requirement-traceability.html">
+        <h3>要求 ID のトレーサビリティ</h3>
+        <p>受け入れ条件が、ID・台帳・コード中のマーカーを通ってズレの検出までどうつながるか。</p>
+        <span class="go">要求トレーサビリティの規約 / ADR 0023</span>
+      </a>
+      <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-auth-verification.html">
+        <h3>認証・認可の検証順序</h3>
+        <p>リクエストが PostgreSQL に届くまでに何がどこで検証され、どの失敗がどの分類に落ちるか。</p>
+        <span class="go">ADR 0006 / 0007 / 0009 / 0011 / 0012</span>
+      </a>
+      <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-profile-photo-write.html">
+        <h3>写真の write lifecycle</h3>
+        <p>登録・置き換え・削除が通る状態と、途中で失敗したときにどう再開するか。</p>
+        <span class="go">ADR 0017 / 0018</span>
+      </a>
+      <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/">
+        <h3>設計図の一覧 →</h3>
+        <p>5枚すべての読み方と、投影元の ADR をまとめています。</p>
+        <span class="go">docs/diagrams/</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== the tech -->
+<section class="band-alt">
+  <div class="wrap">
+    <p class="kicker reveal">What you touch</p>
+    <h2 class="reveal">参加して何に触れられるか</h2>
+    <p class="section-lede reveal">到達点は人によって違って構いません。環境構築まででも、その日の学びとしては十分です。</p>
+    <ul class="chips reveal">
+      <li><b>Rust</b> — 業務ロジック・認可・トランザクション</li>
+      <li><b>TypeScript / Next.js</b> — サーバーサイド統合を含む UI</li>
+      <li><b>PostgreSQL</b> — スキーマ、Row Level Security、権限モデル</li>
+      <li><b>OpenAPI</b> — 契約優先の型生成と drift 検査</li>
+      <li><b>要求トレーサビリティ</b></li>
+      <li><b>データ移行・検証設計</b></li>
+      <li><b>CI/CD・デプロイ構成</b></li>
+      <li><b>AI エージェント運用</b></li>
+    </ul>
+    <p class="reveal" style="margin-top:32px">
+      <a href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/architecture.md">アーキテクチャを読む →</a>
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================== joining -->
+<section id="join">
+  <div class="wrap">
+    <p class="kicker reveal">Join</p>
+    <h2 class="reveal">社内メンバー、有志、自己学習目的。<br>いずれも歓迎します。</h2>
+    <p class="section-lede reveal">参加は Discussions の <strong>Apply</strong> カテゴリへの投稿から始まります。アクセスは段階的にお渡しします。</p>
+
+    <ol class="steps reveal">
+      <li><b>申込</b><span>Discussions の Apply カテゴリへ、動機・使える時間・関心領域を書いて投稿します。</span></li>
+      <li><b>ワークショップ参加</b><span>該当する場合。当日限定の一時アクセスをお渡しします。</span></li>
+      <li><b>実績の確認</b><span>Issue への着手・PR 提出、または Discussions でのやり取り。</span></li>
+      <li><b>招待</b><span>開発リポジトリの collaborator 権限をご案内します。</span></li>
+    </ol>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/greenwakame/ai-first-rebuild-lab/discussions/new?category=apply">Apply に投稿する →</a>
+      <a class="btn btn-ghost" style="color:var(--text);border-color:var(--line-strong);background:var(--surface)" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/how-to-join.md">参加方法の詳細</a>
+    </div>
+
+    <div class="callout reveal">
+      <p><strong>開発で使うのは合成データだけです。</strong>メンバー名や写真も、この用途のために作った架空のデータです。実在する人物の情報をローカル環境や CI へ持ち込まないことを、プロジェクトの非交渉事項としています。</p>
+      <p>AI コーディングエージェントのアカウントが必要です（Claude Code か Codex のどちらか一方）。費用は自己負担になります。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ index -->
+<section class="band-alt">
+  <div class="wrap">
+    <p class="kicker reveal">Documents</p>
+    <h2 class="reveal">読むところ</h2>
+    <p class="section-lede reveal">このリポジトリにコードはありません。開発は別のリポジトリで行っています。ここは、参加を検討している方とワークショップ参加者のための入口です。</p>
+
+    <div class="cards">
+      <a class="card reveal" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/project-overview.md">
+        <h3>プロジェクト概要</h3>
+        <p>何を作っていて、なぜ作り直すのか</p>
+      </a>
+      <a class="card reveal" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/architecture.md">
+        <h3>アーキテクチャ</h3>
+        <p>技術構成とサービス境界</p>
+      </a>
+      <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/">
+        <h3>設計図</h3>
+        <p>設計判断を投影した、動かせる図</p>
+      </a>
+      <a class="card reveal" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/development-approach.md">
+        <h3>開発の進め方</h3>
+        <p>AI-first・ADR 駆動・契約優先・検証文化</p>
+      </a>
+      <a class="card reveal" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/how-to-join.md">
+        <h3>参加方法</h3>
+        <p>どうやって関わるか</p>
+      </a>
+      <a class="card reveal" href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/workshop/README.md">
+        <h3>ワークショップ</h3>
+        <p>当日の流れと事前準備</p>
+      </a>
+      <a class="card reveal" href="https://github.com/greenwakame/ai-first-rebuild-lab/tree/main/docs/adr">
+        <h3>設計判断（ADR）</h3>
+        <p>20件以上の判断の記録</p>
+      </a>
+      <a class="card reveal" href="https://github.com/greenwakame/ai-first-rebuild-lab/discussions">
+        <h3>Discussions</h3>
+        <p>申込・質問・ワークショップの連絡</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
 
 <footer class="site-footer">
-  <nav aria-label="関連">
-    <a href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/adr/">設計判断（ADR）</a>
-    <a href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/roadmap.md">ロードマップ</a>
-    <a href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/faq.md">よくある質問</a>
-    <a href="https://github.com/greenwakame/ai-first-rebuild-lab/discussions">Discussions</a>
-    <a href="https://github.com/greenwakame/ai-first-rebuild-lab">GitHub</a>
-  </nav>
-  <p class="license">文書は CC BY 4.0 で公開しています。</p>
+  <div class="wrap">
+    <nav aria-label="関連リンク">
+      <a href="https://github.com/greenwakame/ai-first-rebuild-lab">リポジトリ</a>
+      <a href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/roadmap.md">ロードマップ</a>
+      <a href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/docs/faq.md">よくある質問</a>
+      <a href="https://github.com/greenwakame/ai-first-rebuild-lab/blob/main/CODE_OF_CONDUCT.md">行動規範</a>
+      <a href="https://github.com/greenwakame/ai-first-rebuild-lab/discussions">Discussions</a>
+    </nav>
+    <p class="license">文書は <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> で公開しています。</p>
+  </div>
 </footer>
+
+<script src="/ai-first-rebuild-lab/assets/js/hero.js" defer></script>
+<script>
+/* Reveal-on-scroll. The `.js` class above is what hides these in the first
+ * place, so with JavaScript off every section is simply visible. */
+(function () {
+  'use strict';
+  var items = document.querySelectorAll('.reveal');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !window.IntersectionObserver) {
+    for (var i = 0; i < items.length; i++) items[i].classList.add('shown');
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add('shown'); io.unobserve(e.target); }
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+  for (var j = 0; j < items.length; j++) io.observe(items[j]);
+
+  /* Nothing on this page is worth hiding behind an effect. If the observer has
+   * not accounted for an element after a few seconds, show it anyway. */
+  window.setTimeout(function () {
+    for (var k = 0; k < items.length; k++) items[k].classList.add('shown');
+  }, 4000);
+})();
+</script>
 </body>
 </html>
