@@ -237,6 +237,23 @@ kind:   requirement</code>
       <li>画像の書き出し</li>
     </ul>
 
+    <!-- The diagram is injected here on wide screens; see assets/js/embed.js.
+         The link is what stays on a phone, and without scripting. -->
+    <figure class="diagram-live reveal">
+      <div class="diagram-slot" id="diagram-embed"
+           data-src="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-trust-boundary.html"
+           data-title="認証・認可の trust boundary 図（操作できます）">
+        <a class="diagram-open" href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-trust-boundary.html">
+          <strong>認証・認可の trust boundary</strong>
+          <span>図を開く →</span>
+        </a>
+      </div>
+      <figcaption>
+        この図は ADR から機械的に生成しています。生成のたびに同じ結果になることと、配置や線の重なりを自動で検証しています。図の中でテーマ切替・検索・関係のたどり・拡大縮小・画像の書き出しが動きます。
+        <a href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-trust-boundary.html">全画面で開く →</a>
+      </figcaption>
+    </figure>
+
     <div class="diagram-feature">
       <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-trust-boundary.html">
         <h3>認証・認可の trust boundary</h3>
@@ -381,6 +398,7 @@ kind:   requirement</code>
 
 <script type="module" src="/ai-first-rebuild-lab/assets/js/hero.js"></script>
 <script src="/ai-first-rebuild-lab/assets/js/trace.js" defer></script>
+<script src="/ai-first-rebuild-lab/assets/js/embed.js" defer></script>
 <script>
 /* Reveal-on-scroll. The `.js` class above is what hides these in the first
  * place, so with JavaScript off every section is simply visible. */
