@@ -812,3 +812,51 @@ h3.sub { font-size: 19px; margin: 52px 0 10px; }
 @media (prefers-reduced-motion: reduce) {
   .station::after { transition: none !important; transition-delay: 0s !important; }
 }
+
+/* ==================================================== embedded diagram */
+
+.diagram-live { margin: 0 0 26px; }
+
+.diagram-slot {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* Until a diagram is mounted the slot is just the link, so it must not
+ * reserve the height of one. */
+.diagram-slot.is-mounted { background: #0b1220; }
+
+.diagram-frame {
+  display: block;
+  width: 100%;
+  height: 560px;
+  border: 0;
+}
+
+.diagram-open {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  padding: 22px 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color .18s ease;
+}
+.diagram-open:hover { background: var(--bg-alt); }
+.diagram-open strong { font-size: 17px; color: var(--accent); }
+.diagram-open span { font-family: var(--mono); font-size: 13px; color: var(--text-muted); }
+.diagram-slot.is-mounted .diagram-open { display: none; }
+
+.diagram-live figcaption {
+  margin: 12px 2px 0;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1100px) {
+  .diagram-frame { height: 500px; }
+}
