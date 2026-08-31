@@ -232,12 +232,33 @@ function tables(scope) {
 function mermaid(scope) {
   for (const code of scope.querySelectorAll('pre > code.language-mermaid')) {
     const pre = code.parentElement;
-    const note = document.createElement('p');
-    note.className = 'mermaid-note';
-    note.innerHTML = 'この図は簡略版です。境界と検証内容まで含む'
-      + ' <a href="' + SITE + 'docs/diagrams/rebuild-lab-trust-boundary.html">'
-      + '対話型の trust boundary 図</a> があります。';
-    pre.parentNode.insertBefore(note, pre.nextSibling);
+
+    /* Replace the block rather than annotate it. Leaving the source on screen
+     * shows a visitor a wall of `flowchart LR` markup, which reads as a page
+     * that failed to render — worse than showing nothing. The definition is
+     * kept, folded away, so nothing is concealed. */
+    const figure = document.createElement('figure');
+    figure.className = 'diagram-swap';
+
+    const link = document.createElement('a');
+    link.className = 'diagram-swap-link';
+    link.href = SITE + 'docs/diagrams/rebuild-lab-trust-boundary.html';
+    link.innerHTML = '<strong>認証・認可の trust boundary</strong>'
+      + '<span>境界と、各所で何を検証し、何をブラウザへ渡さないかまで含んだ図です。'
+      + 'テーマ切替・検索・関係のたどり・拡大縮小が図の中で動きます。</span>'
+      + '<span class="go">図を開く →</span>';
+    figure.appendChild(link);
+
+    const caption = document.createElement('figcaption');
+    const fold = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = 'この位置にある簡略図の定義（mermaid）';
+    fold.appendChild(summary);
+    fold.appendChild(pre.cloneNode(true));
+    caption.appendChild(fold);
+    figure.appendChild(caption);
+
+    pre.parentNode.replaceChild(figure, pre);
   }
 }
 

@@ -1265,3 +1265,45 @@ body.reading { background: var(--bg); }
   .doc-move .move.next:only-child { grid-column: 1; }
   .move.next { text-align: left; }
 }
+
+/* --------------------------------------------- a simplified diagram swapped */
+
+/* The document carries a small mermaid sketch of a diagram that exists here in
+ * full, interactive form. Rendering mermaid would cost nearly a megabyte for
+ * this one block, and showing its source shows the reader markup. Point at the
+ * real thing instead, and fold the definition away rather than drop it. */
+.diagram-swap { margin: 24px 0; }
+
+.diagram-swap-link {
+  display: block;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .18s ease, transform .18s ease;
+}
+.diagram-swap-link:hover, .diagram-swap-link:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.diagram-swap-link strong { display: block; font-size: 17px; color: var(--accent); margin-bottom: 8px; }
+.diagram-swap-link > span { display: block; font-size: 14.5px; line-height: 1.75; color: var(--text-muted); }
+.diagram-swap-link .go {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.diagram-swap figcaption { margin: 10px 0 0; }
+.diagram-swap details { margin: 0; border: 0; background: none; padding: 0; }
+.diagram-swap summary {
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.diagram-swap details pre { margin: 10px 0 0; font-size: 12.5px; }
