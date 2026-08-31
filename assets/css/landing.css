@@ -1125,3 +1125,143 @@ body.reading { background: var(--bg); }
 .doc-fallback { max-width: 40rem; }
 .doc-fallback h1 { font-size: clamp(26px, 4vw, 34px); margin: 0 0 18px; }
 .doc-fallback p { margin: 0 0 14px; color: var(--text-muted); }
+
+/* ============================================ the document as an artefact */
+
+/* These pages carry the project's own documents. The content is already
+ * dense; what it lacked was any sense of where you are, how much there is,
+ * and where to go next. Everything added here answers one of those, and every
+ * figure shown is counted from the rendered document rather than written by
+ * hand. */
+
+/* ------------------------------------------------------------- progress */
+
+.read-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 40;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--mint), var(--sky) 55%, var(--violet));
+}
+
+/* Driven from script rather than `animation-timeline: scroll()`.
+ *
+ * The CSS route was tried first and abandoned: `@supports (animation-timeline:
+ * scroll())` answers yes because the property parses, but the timeline came up
+ * inactive (currentTime null) and the bar never moved — on a fixed element and
+ * on a sticky one alike, with the page plainly scrollable. A feature query that
+ * reports support for something that does not work is not a usable guard, and
+ * these pages already need script to render the document at all, so there is
+ * no dependency saved by insisting on the CSS path. */
+.doc-ready .read-progress { transition: transform .08s linear; }
+@media (prefers-reduced-motion: reduce) {
+  .read-progress { display: none; }
+}
+
+/* -------------------------------------------------------------- readout */
+
+.doc-head {
+  margin: 0 0 34px;
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.doc-pos {
+  margin: 0 0 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+}
+.doc-pos b {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.doc-pos span { font-variant-numeric: tabular-nums; }
+
+.doc-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 26px;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.doc-facts .fact { display: flex; align-items: baseline; gap: 8px; }
+.doc-facts dt { color: var(--text-muted); letter-spacing: .08em; }
+.doc-facts dd {
+  margin: 0;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+/* ------------------------------------------------------ numbered sections */
+
+.prose h2 { display: flex; align-items: baseline; gap: 14px; }
+.h-num {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  padding-top: 3px;
+}
+
+.toc-num {
+  display: inline-block;
+  width: 2em;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--line-strong);
+  font-variant-numeric: tabular-nums;
+}
+.doc-toc a:hover .toc-num,
+.doc-toc a:focus-visible .toc-num { color: var(--accent); }
+
+/* --------------------------------------------------------- prev and next */
+
+.doc-move {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 14px;
+  margin: 56px 0 0;
+  padding: 28px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.move {
+  display: block;
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .18s ease, transform .18s ease;
+}
+.move:hover, .move:focus-visible { border-color: var(--accent); transform: translateY(-2px); }
+.move.next { text-align: right; }
+
+.move-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.move-title { display: block; font-size: 16px; font-weight: 600; color: var(--accent); }
+
+/* A single next link should sit on the right, where the pair would put it. */
+.doc-move .move.next:only-child { grid-column: 2; }
+@media (max-width: 560px) {
+  .doc-move .move.next:only-child { grid-column: 1; }
+  .move.next { text-align: left; }
+}
