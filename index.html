@@ -289,6 +289,54 @@ kind:   requirement</code>
   </div>
 </section>
 
+<!-- ======================================================= built this way -->
+<section id="built">
+  <div class="wrap">
+    <p class="kicker reveal">Built this way</p>
+    <h2 class="reveal">このページ自体が、その過程です。</h2>
+    <p class="section-lede reveal">ここまでのヒーロー、さきほど壊していただいたデモ、上の図の埋め込み。いずれも AI エージェントが実装し、人が差分を検証し、公開の Pull Request を経てマージされました。差分も検証結果もそのまま読めます。</p>
+
+    <div class="callout reveal">
+      <p><strong>先に、検証できなかったことを書きます。</strong>ヒーローの 3D について、<strong>GPU のフレーム時間は信頼できる値を測れませんでした。</strong>検証に使ったブラウザでは <code>gl.finish()</code> を挟んでも実際の GPU 時間を反映しなかったためです。この事実は PR 本文にそのまま書かれています。</p>
+      <p>「確認できなかったことも書く」はこのプロジェクトの完了条件のひとつです。ここで伏せると、その主張自体が嘘になります。</p>
+    </div>
+
+    <div class="tablewrap reveal">
+      <table class="prlog">
+        <thead>
+          <tr><th>PR</th><th>作ったもの</th><th>差分</th><th>検証</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://github.com/greenwakame/ai-first-rebuild-lab/pull/42">#42</a></td>
+            <td>このページと 3D ヒーロー</td>
+            <td class="num">+4,036 / −260</td>
+            <td>劣化経路4条件を実機確認。<strong>GPU のフレーム時間は測れず、その旨を明記</strong></td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/greenwakame/ai-first-rebuild-lab/pull/43">#43</a></td>
+            <td>上のトレーサビリティのデモ</td>
+            <td class="num">+461</td>
+            <td>検証項目 9 件。引用が原本と逐語一致することを機械的に検査</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/greenwakame/ai-first-rebuild-lab/pull/44">#44</a></td>
+            <td>上の設計図の埋め込み</td>
+            <td class="num">+117</td>
+            <td>検証項目 7 件。埋め込む幅の閾値は実測で決定</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="section-lede reveal" style="margin-top:26px"><strong>規模は誇張しません。</strong>これは公開サイトであって、作り直している業務システムそのものではありません。示せるのは、同じ進め方が実際に回り、検証の記録が公開されているという事実だけです。開発そのものは別のリポジトリで行っています。</p>
+
+    <p class="reveal">
+      <a href="https://github.com/greenwakame/ai-first-rebuild-lab/pulls?q=is%3Apr+is%3Amerged">マージ済みの Pull Request を見る →</a>
+    </p>
+  </div>
+</section>
+
 <!-- ============================================================== the tech -->
 <section class="band-alt">
   <div class="wrap">
