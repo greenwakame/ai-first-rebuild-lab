@@ -29,7 +29,7 @@ flowchart LR
 | **Rust API** | Render | 業務ルール、認可、トランザクション、帳票、移行CLI |
 | **Supabase** | — | PostgreSQL、Auth、Storage。Row Level Securityは公開対象を最小化する防御層 |
 
-上の図は全体構成を短時間で掴むためのものです。**どこに境界があり、各所で何を検証し、何をブラウザへ渡さないか**まで見るには、ADRから生成した [trust boundary 図](https://greenwakame.github.io/ai-first-rebuild-lab/diagrams/rebuild-lab-trust-boundary.html) を参照してください。図の一覧は [設計図](https://greenwakame.github.io/ai-first-rebuild-lab/diagrams/) にあります。
+上の図は全体構成を短時間で掴むためのものです。**どこに境界があり、各所で何を検証し、何をブラウザへ渡さないか**まで見るには、ADRから生成した [trust boundary 図](https://greenwakame.github.io/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-trust-boundary.html) を参照してください。図の一覧は [設計図](https://greenwakame.github.io/ai-first-rebuild-lab/docs/diagrams/) にあります。
 
 ## 境界の原則
 
