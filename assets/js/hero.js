@@ -34,7 +34,7 @@ function boot() {
 
 const canvas = document.getElementById('hero-canvas');
 const hero = document.querySelector('.hero');
-const label = document.getElementById('hero-boundary');
+const layers = document.querySelectorAll('#hero-boundaries li');
 if (!canvas || !hero) throw new Error('hero markup missing');
 
 const reduceMotion = window.matchMedia
@@ -54,7 +54,9 @@ let light = wantsLightBuild();
 /* ------------------------------------------------------------------ scene */
 
 /* The four boundaries, front to back, narrowing as traffic converges on one
- * store. Colours run along this project's own banner gradient. */
+ * store. Colours run along this project's own banner gradient. The names the
+ * visitor reads are in index.html, not here; keep the two lists in the same
+ * order. */
 const BOUNDARIES = [
   { z:   0.0, r: 5.6, color: 0x3fcf8e, name: 'Browser' },
   { z:  -7.0, r: 4.3, color: 0x38bdf8, name: 'Next.js' },
@@ -389,11 +391,11 @@ function scrollProgress() {
 }
 
 function updateLabel(p) {
-  if (!label) return;
-  const i = Math.min(BOUNDARIES.length - 1, Math.floor(p * BOUNDARIES.length));
+  if (!layers.length) return;
+  const i = Math.min(layers.length - 1, Math.floor(p * BOUNDARIES.length));
   if (i === shownBoundary) return;
   shownBoundary = i;
-  label.textContent = BOUNDARIES[i].name;
+  for (let k = 0; k < layers.length; k++) layers[k].classList.toggle('is-here', k === i);
 }
 
 function place(p, time) {

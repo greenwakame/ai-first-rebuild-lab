@@ -72,7 +72,21 @@
     </div>
   </div>
 
-  <p class="hero-boundary" aria-hidden="true"><span id="hero-boundary"></span></p>
+  <!-- The key to the visual. The canvas draws four boundaries; this names them
+       in order and marks the one the camera is inside. The names live here,
+       not in hero.js, so the structure reads identically with no JavaScript,
+       no WebGL2 and under reduced motion — the flight moves the marker, it
+       does not supply the information. Keep the order in step with the
+       BOUNDARIES array in assets/js/hero.js. -->
+  <div class="hero-layers">
+    <p class="hero-layers-cap">通信は4つの境界を越え、1つのデータストアへ収束します。</p>
+    <ol class="hero-layer-list" id="hero-boundaries">
+      <li class="is-here">Browser</li>
+      <li>Next.js</li>
+      <li>Rust API</li>
+      <li>PostgreSQL</li>
+    </ol>
+  </div>
 
   <a class="scroll-cue" href="#main">Scroll <span class="arrow" aria-hidden="true">↓</span></a>
  </div>
