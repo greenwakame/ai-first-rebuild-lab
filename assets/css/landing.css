@@ -22,6 +22,9 @@
   --mint: #3fcf8e;
   --sky: #38bdf8;
   --violet: #a78bfa;
+  /* The third boundary of the hero visual sits between sky and violet. It has
+   * no other use here; the value matches BOUNDARIES in assets/js/hero.js. */
+  --iris: #74a0fb;
 
   --bg: #fbfaf8;
   --bg-alt: #f4f2ef;
@@ -188,32 +191,122 @@ a { color: var(--accent); text-underline-offset: 3px; }
 
 .topbar, .hero-body, .scroll-cue { position: relative; z-index: 3; }
 
-/* Which boundary the camera is passing through. Empty until the flight
- * starts, and absolutely placed so it never affects the fallback layout. */
-.hero-boundary {
+/* The legend for the visual: the four boundaries it draws, in order, with the
+ * one the camera is inside lit. All four are present from the first paint, so
+ * a visitor who never starts the flight still gets the whole structure. The
+ * flight only moves `.is-here`. Absolutely placed, so it never affects the
+ * fallback layout. */
+.hero-layers {
   position: absolute;
   right: var(--pad);
-  bottom: 22px;
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 3;
+  width: max-content;
+  max-width: 14rem;
+  text-align: right;
+  pointer-events: none;
+}
+
+.hero-layers-cap {
+  margin: 0 0 14px;
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--on-stage-dim);
+  /* Japanese wraps mid-word by default, which splits カタカナ across lines.
+   * Ignored where unsupported, which only restores that default. */
+  word-break: auto-phrase;
+}
+
+.hero-layer-list {
+  position: relative;
+  list-style: none;
   margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 11px;
+}
+
+/* Threads the dots together, so the four read as one path in order rather
+ * than as four unrelated labels. */
+.hero-layer-list::before {
+  content: "";
+  position: absolute;
+  right: 3px;
+  top: 7px;
+  bottom: 7px;
+  width: 1px;
+  background: linear-gradient(180deg,
+    var(--mint), var(--sky) 38%, var(--iris) 68%, var(--violet));
+  opacity: .4;
+}
+
+.hero-layer-list li {
+  position: relative;
+  padding-right: 19px;
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--on-stage-dim);
-  pointer-events: none;
+  opacity: .8;
+  transition: opacity .35s ease, color .35s ease;
 }
-.hero-boundary span { position: relative; padding-left: 18px; }
-.hero-boundary span:empty { display: none; }
-.hero-boundary span::before {
+.hero-layer-list li::before {
   content: "";
   position: absolute;
-  left: 0; top: 50%;
-  width: 8px; height: 8px;
-  margin-top: -4px;
+  right: 0;
+  top: 50%;
+  width: 7px; height: 7px;
+  margin-top: -3.5px;
   border-radius: 50%;
-  background: var(--mint);
-  box-shadow: 0 0 10px var(--mint);
+  background: var(--layer);
+}
+
+.hero-layer-list li:nth-child(1) { --layer: var(--mint); }
+.hero-layer-list li:nth-child(2) { --layer: var(--sky); }
+.hero-layer-list li:nth-child(3) { --layer: var(--iris); }
+.hero-layer-list li:nth-child(4) { --layer: var(--violet); }
+
+.hero-layer-list li.is-here {
+  opacity: 1;
+  color: var(--on-stage);
+}
+.hero-layer-list li.is-here::before { box-shadow: 0 0 10px var(--layer); }
+
+/* The free column on the right closes well before the hero does: `.lede` is
+ * 38rem wide and the legend needs 14rem, so below this the two would meet.
+ * The legend rejoins the flow under the copy instead and reads left to right
+ * like the rest of it, dots flipped to match. */
+@media (max-width: 1060px) {
+  .hero-layers {
+    /* Relative, not static: it rejoins the flow but keeps the z-index that
+     * holds it above `.hero-veil`. */
+    position: relative;
+    align-self: stretch;
+    top: auto;
+    right: auto;
+    transform: none;
+    width: auto;
+    max-width: none;
+    text-align: left;
+    padding: 0 var(--pad) 10px;
+  }
+  .hero-layers-cap { margin-bottom: 10px; }
+  /* Buys the gap the legend needs above the scroll cue without pushing the
+   * cue out of the stage, which `overflow: hidden` would clip. */
+  .hero-body { padding-bottom: 18px; }
+  /* Four rows would push the scroll cue out of the stage, so the four run
+   * across and wrap. The thread goes with them; left-to-right order carries
+   * the sequence on its own. */
+  .hero-layer-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px 18px;
+  }
+  .hero-layer-list::before { display: none; }
+  .hero-layer-list li { padding-right: 0; padding-left: 19px; }
+  .hero-layer-list li::before { right: auto; left: 0; }
 }
 
 .topbar {
