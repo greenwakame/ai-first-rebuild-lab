@@ -113,7 +113,7 @@ flowchart LR
 
 ### ワークショップ参加者の方へ
 
-[ワークショップ資料](docs/workshop/README.md) を参照してください。
+[ワークショップ資料](docs/workshop/README.md) と、開催時に使用した[講義スライド](https://greenwakame.github.io/ai-first-rebuild-lab/slides/)を参照してください。
 
 当日は実際のIssueに着手し、Pull Requestを1本提出するところまでを体験します。事前準備は [prerequisites.md](docs/workshop/prerequisites.md) にあります。
 

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>2,026件の自動テスト合格。それでも初回利用で止まった理由 — AI開発ループの振り返り</title>
+  <link rel="icon" href="/ai-first-rebuild-lab/.github/banner.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div id="fallback-bg" aria-hidden="true"></div>
+  <div id="vignette" aria-hidden="true"></div>
+
+  <main id="deck" class="deck" aria-label="AI開発ループ振り返りLT">
+    <section class="slide active hero hero-open" data-slide="0" data-scene="open" data-fragments="4">
+      <div class="hero-grid"></div>
+      <div class="orbital orbital-a"></div><div class="orbital orbital-b"></div>
+      <div class="hero-copy">
+        <p class="eyebrow">AI DEVELOPMENT LOOP / RETROSPECTIVE</p>
+        <h1>デザイン承認済み、<br><span class="gradient-text">2,026件の自動テスト</span>合格。</h1>
+        <div class="proof-stack" aria-label="検証済みの項目">
+          <div class="proof fragment" data-fragment="1"><span>01</span><b>主要画面を承認</b><em>見た目・配置・操作の方針を人が確認</em></div>
+          <div class="proof fragment" data-fragment="2"><span>02</span><b>2,026件 合格</b><em>認証・権限・保存・寸法・キーボード操作</em></div>
+          <div class="proof fragment" data-fragment="3"><span>03</span><b>実ブラウザ検証</b><em>指定手順で操作 → 保存 → 再読み込み</em></div>
+        </div>
+        <div class="hero-punch fragment" data-fragment="4">
+          <span class="hairline"></span>
+          <p>それでも、<strong>初回利用で止まった。</strong></p>
+        </div>
+      </div>
+      <div class="hero-sphere-label" aria-hidden="true">
+        <small>EVIDENCE NETWORK</small><b>2026</b><span>tests passing</span>
+      </div>
+    </section>
+
+    <section class="slide" data-slide="1" data-scene="quiet" data-fragments="2">
+      <header class="slide-header"><span>01 / SCOPE</span><h2>固めたのは、<em>アプリ全体</em>ではなかった</h2></header>
+      <div class="flow-map">
+        <div class="screen approved"><span>入口</span><strong>承認済み</strong></div>
+        <div class="connector"></div>
+        <div class="screen approved"><span>一覧</span><strong>承認済み</strong></div>
+        <div class="connector weak"></div>
+        <div class="screen legacy fragment" data-fragment="1"><span>対象の詳細</span><strong>旧・動作確認UI</strong></div>
+        <div class="connector weak"></div>
+        <div class="screen legacy fragment" data-fragment="1"><span>実施内容の詳細</span><strong>旧・動作確認UI</strong></div>
+        <div class="connector"></div>
+        <div class="screen approved"><span>実作業画面</span><strong>承認済み</strong></div>
+      </div>
+      <div class="scope-bracket fragment" data-fragment="2"><span>画面ごとの承認</span><b>≠</b><span>入口から仕事が終わるまでの承認</span></div>
+      <p class="caption">各画面は進んだ。けれど、<strong>画面と画面の間</strong>を一つの体験として止めて確認していなかった。</p>
+    </section>
+
+    <section class="slide" data-slide="2" data-scene="quiet" data-fragments="2">
+      <header class="slide-header"><span>02 / PROTOTYPE → PRODUCT</span><h2>配置は似ていても、<em>判断材料</em>が消えると役割は変わる</h2></header>
+      <div class="compare-grid">
+        <article class="mock proto">
+          <p class="mock-label">試作</p>
+          <div class="mock-title">来週の研修</div>
+          <div class="progress"><i style="width:82%"></i></div>
+          <div class="mock-row"><b>82%</b><span>準備の進捗</span></div>
+          <div class="mock-row"><b>9/18</b><span>次回の実施</span></div>
+          <div class="mock-row"><b>8 / 10</b><span>作業完了</span></div>
+          <div class="next-action">次にやること → 担当者を決める</div>
+        </article>
+        <div class="morph-arrow"><span>本番データへ</span><b>→</b></div>
+        <article class="mock prod fragment" data-fragment="1">
+          <p class="mock-label">本実装</p>
+          <div class="mock-title">来週の研修</div>
+          <div class="fact-only">実際に保存されている事実だけを表示</div>
+          <div class="mock-row dim"><b>—</b><span>進捗率は算出していない</span></div>
+          <div class="mock-row dim"><b>—</b><span>次の行動は保持していない</span></div>
+          <div class="mock-row"><b>3</b><span>登録済み情報</span></div>
+        </article>
+      </div>
+      <div class="two-truths fragment" data-fragment="2"><span>架空の情報を出さない判断は<strong>正しい</strong></span><span>情報を外した後の画面を<strong>再評価していない</strong></span></div>
+    </section>
+
+    <section class="slide" data-slide="3" data-scene="quiet" data-fragments="2">
+      <header class="slide-header"><span>03 / SPEC COMPLIANCE</span><h2>問題のある挙動そのものが、<em>合格</em>として記録されていた</h2></header>
+      <div class="spec-panels">
+        <article class="spec-card">
+          <div class="terminal-tag">EMPTY STATE</div>
+          <div class="big-copy">登録データ 0件</div>
+          <div class="ready">準備完了</div>
+          <div class="pass fragment" data-fragment="1">✓ テスト合格</div>
+        </article>
+        <article class="spec-card">
+          <div class="terminal-tag">追加フォーム</div>
+          <button class="fake-button">＋ スタッフ追加</button>
+          <div class="focus-demo"><span class="focused">スタッフを追加</span><input tabindex="-1" placeholder="名前を入力" /></div>
+          <div class="pass fragment" data-fragment="1">✓ 見出しへフォーカス → 合格</div>
+        </article>
+      </div>
+      <div class="question-shift fragment" data-fragment="2">
+        <div><small>聞いていた問い</small><b>仕様どおりか？</b><span class="ok">YES</span></div>
+        <div class="arrow-orbit">→</div>
+        <div><small>足りなかった問い</small><b>その仕様で仕事を進められるか？</b><span class="unknown">未検証</span></div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide="4" data-scene="route" data-fragments="2">
+      <header class="slide-header"><span>04 / DISCOVERABILITY</span><h2>AIは台本どおり完走した。<em>初見利用者に台本はない</em></h2></header>
+      <div class="routes">
+        <div class="route route-ai">
+          <p><i class="dot ai"></i> AI検証 — 指定された順序</p>
+          <ol><li>ひな形となる計画を登録</li><li>実施データを作成</li><li>担当を割り当て</li><li>保存・再読み込み</li></ol>
+          <div class="runner robot fragment" data-fragment="1">AI</div><div class="finish">✓ 完走</div>
+        </div>
+        <div class="route route-human fragment" data-fragment="2">
+          <p><i class="dot human"></i> 初見 — 目的だけを伝える</p>
+          <ol><li>実施データを作成</li><li>担当者を登録</li><li>あとから作業を追加したい</li><li class="dead">追加する手段がない</li></ol>
+          <div class="runner person">?</div><div class="blocked">行き止まり</div>
+        </div>
+      </div>
+      <div class="equation">手順を<strong>知っていれば完走できる</strong> <b>≠</b> 初見で<strong>手順を発見できる</strong></div>
+    </section>
+
+    <section class="slide" data-slide="5" data-scene="quiet" data-fragments="2">
+      <header class="slide-header"><span>05 / LOOP DESIGN</span><h2>ループが最適化したものと、<em>期待した成功</em>がずれていた</h2></header>
+      <div class="evidence-funnel">
+        <div class="evidence-source"><span>実装</span><b>✓</b></div>
+        <div class="evidence-source"><span>レビュー</span><b>✓</b></div>
+        <div class="evidence-source"><span>自動テスト</span><b>✓</b></div>
+        <div class="evidence-source"><span>ブラウザ検証</span><b>✓</b></div>
+        <svg viewBox="0 0 700 240" aria-hidden="true"><path d="M50,30 C260,30 290,115 550,115"/><path d="M50,90 C260,90 290,115 550,115"/><path d="M50,150 C260,150 290,115 550,115"/><path d="M50,210 C260,210 290,115 550,115"/></svg>
+        <div class="gap fragment" data-fragment="1"><span>成功条件が別だった</span></div>
+        <div class="outcome"><small>本当に欲しかった成功</small><strong>利用者が<br>一連の仕事を完了できる</strong></div>
+      </div>
+      <div class="root-cause fragment" data-fragment="2">AIループは<strong>「仕様への適合」</strong>を高速化した。<br>でも<strong>「利用者が仕事を完了できる」</strong>は、ループの合格条件に入っていなかった。</div>
+    </section>
+
+    <section class="slide" data-slide="6" data-scene="quiet" data-fragments="2">
+      <header class="slide-header"><span>06 / NEXT GATE</span><h2>次のループでは、成功条件を<em>一画面</em>ではなく<em>一つの仕事</em>で定義する</h2></header>
+      <div class="job-track">
+        <div class="job-step"><small>01</small><b>空の状態</b><span>何から始める？</span></div><i>→</i>
+        <div class="job-step"><small>02</small><b>作成</b><span>目的に沿って登録</span></div><i>→</i>
+        <div class="job-step hot fragment" data-fragment="1"><small>03</small><b>途中変更</b><span>会場確認を追加</span></div><i>→</i>
+        <div class="job-step"><small>04</small><b>保存</b><span>結果が分かる</span></div><i>→</i>
+        <div class="job-step"><small>05</small><b>再読み込み</b><span>状態が残る</span></div><i>→</i>
+        <div class="job-step"><small>06</small><b>やり直し</b><span>間違いから戻れる</span></div>
+      </div>
+      <div class="task-card fragment" data-fragment="2"><small>ループの出口条件を確かめる試験課題</small><p>「来週の研修を管理してください。受付と資料準備を登録し、担当者を決めてください。<strong>途中で会場確認も必要になったので追加</strong>してください。保存した状態が残っていることを確認してください。」</p><em>※ 操作順は教えない。達成したい目的だけを渡す。</em></div>
+    </section>
+
+    <section class="slide hero hero-close" data-slide="7" data-scene="close" data-fragments="0">
+      <div class="hero-grid close-grid"></div>
+      <div class="close-copy">
+        <p class="eyebrow">TAKEAWAY</p>
+        <h2>AIでループを速く回せる。<br><span>実装も。レビューも。テストも。</span><br><em>そして、未検証の前提も。</em></h2>
+        <div class="final-message"><span></span><p>ループを速く回す前に、<br><strong>何を成功として返すかを設計する。</strong></p></div>
+        <p class="status-line">改善は進行中。次は「初見の人が目的だけで仕事を完了できるか」で評価する。</p>
+      </div>
+      <div class="close-sigil" aria-hidden="true"><i></i><i></i><i></i><b>JOB FLOW</b></div>
+    </section>
+  </main>
+
+  <div class="chrome" aria-hidden="true"><span id="slideNo">01</span><div class="progress-line"><i id="progress"></i></div><span class="hint">SPACE / →</span></div>
+  <script src="app.js"></script>
+</body>
+</html>
