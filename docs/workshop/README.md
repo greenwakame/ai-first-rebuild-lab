@@ -115,6 +115,7 @@ WindowsではWSL2（Ubuntu）内で開発コマンドを実行します。ネイ
 
 | 文書 | 内容 |
 | --- | --- |
+| [講義スライド](https://greenwakame.github.io/ai-first-rebuild-lab/slides/) | **開催時に使用したHTMLスライド**。過去の資料も開催月ごとに閲覧できます |
 | [prerequisites.md](prerequisites.md) | **事前準備**（参加前に必ずお読みください） |
 | [agenda.md](agenda.md) | 当日の流れ |
 | [issue-walkthrough.md](issue-walkthrough.md) | **着手からマージまでの実例**。当日の作業イメージが最もつかみやすい資料 |
