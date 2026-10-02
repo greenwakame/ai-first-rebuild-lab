@@ -363,7 +363,7 @@
   </div>
   <div class="checkpanel mono">
     <span class="cmd">$ mise run req:check</span>　<span style="color:var(--faint)">← PR前に必ず実行。片方だけ動いた状態を終了コードで検出</span><br>
-    仕様だけが変更され、コードが動いていない　→ <span class="res-e">ERROR</span>　／　実装だけが変更された → <span class="res-w">WARNING</span>　／　「実装済み」の状態を下げて黙らせる → <span class="res-e">それ自体を検出</span>
+    仕様だけが変更され、コードが動いていない　→ <span class="res-e">ERROR</span>　／　実装だけが変更された → <span class="res-w">WARNING</span>　／　「実装済み」の状態を下げて結果を消す → <span class="res-e">それ自体を検出</span>
   </div>
   <div class="quote" style="margin-top:16px;font-size:17px">検出ツールに <span class="mono accent">--fix</span> は存在しない。ズレを見つけたAIは<b>整合を取らずに停止し、人へ報告する</b>。整合させる判断は人に残す。</div>
   <div class="limit"><span class="tag">限界も明示</span>同じPRで仕様とコードを同時に書き換えれば検査は通る。検出できるのは「片方だけが動いた」ことであって、意味の一致ではない。</div>
@@ -419,7 +419,7 @@
       <li>reduced motion 適用時にアニメーションが実際に止まっているか — <b>静止画のスクリーンショットでは判定不可</b></li>
     </ul>
   </div>
-  <div class="quote" style="margin-top:24px">AIは、実行できなかったことを<span class="accent">自己申告させないと、誰も気づけない</span>。<br>だから「できなかったことを書く」をPRの必須項目にする。<span class="src">— 未確認事項が明示されると、レビュアーはそこを重点的に見られる。「全部確認済み」という誤解が消える</span></div>
+  <div class="quote" style="margin-top:24px">AIに、実行できなかったことを<span class="accent">自己申告させないと、誰も気づけない</span>。<br>だから「できなかったことを書く」をPRの必須項目にする。<span class="src">— 未確認事項が明示されると、レビュアーはそこを重点的に見られる。「全部確認済み」という誤解が消える</span></div>
   <div class="foot"><span class="pill">個人開発 / personal project</span><span class="repo">ai-first-rebuild-lab</span><span class="pg">9 / 13</span></div>
 </section>
 
