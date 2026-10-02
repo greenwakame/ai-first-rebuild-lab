@@ -67,7 +67,7 @@
     <div class="hero-copy">
       <p class="eyebrow">Next.js &nbsp;·&nbsp; Rust &nbsp;·&nbsp; Supabase</p>
       <h1>レガシー業務システムを、<br><span class="grad">AI と一緒に</span>作り直しています。</h1>
-      <p class="lede">テストがなく、認可が独自で、手順を再現できない — そういうシステムを、検証できる最小単位で置き換えていく取り組みです。<strong>設計を先に固め、判断を記録し、検証してから進める。</strong>その過程を、判断の記録ごと公開しています。</p>
+      <p class="lede">テストがなく、認可が独自で、手順を再現できないシステムを、検証できる最小単位で置き換えていく取り組みです。<strong>設計を先に固め、判断を記録し、検証してから進める。</strong>その過程を、判断の記録ごと公開しています。</p>
       <div class="cta-row">
         <a class="btn btn-primary" href="/ai-first-rebuild-lab/docs/diagrams/">設計図を見る →</a>
         <a class="btn btn-ghost" href="#join">参加方法</a>
@@ -114,12 +114,12 @@
       <div class="card reveal">
         <span class="num">01</span>
         <h3>認可モデルの移行</h3>
-        <p>「管理者／一般」のような単純なロールではなく、グループとユーザー単位の例外を組み合わせた、機能・操作単位のモデルです。安易にロールへ縮約すると権限漏れが起きます。データベースの制約とクエリレベルの絞り込みまで降ろして再現します。</p>
+        <p>「管理者／一般」のような単純なロールではなく、グループとユーザー単位の例外を組み合わせた、機能・操作単位のモデルです。安易にロールへ縮約すると権限漏れが起きます。認可モデルを、データベースの制約とクエリレベルの絞り込みにまで反映して再現します。</p>
       </div>
       <div class="card reveal">
         <span class="num">02</span>
         <h3>データ移行の検証</h3>
-        <p>旧システムには自動テストがほとんどありません。行数・チェックサム・キー関係の突合など、<strong>値そのものを見ずに</strong>移行の正しさを示す方法を、設計から起こす必要があります。</p>
+        <p>旧システムには自動テストがほとんどありません。行数・チェックサム・キー関係の突合など、<strong>値そのものを見ずに</strong>移行の正しさを示す方法を設計する必要があります。</p>
       </div>
       <div class="card reveal">
         <span class="num">03</span>
@@ -156,7 +156,7 @@
       <div class="pillar">
         <span class="idx">04</span>
         <h3>要求トレーサビリティ</h3>
-        <p>受け入れ条件に機械可読な ID を与え、実装とテストへマーカーで結び、ズレを終了コードで検出する。</p>
+        <p>受け入れ条件に機械可読なIDを割り当て、マーカーで実装とテストに結び付け、食い違いを終了コードで検出する。</p>
       </div>
       <div class="pillar">
         <span class="idx">05</span>
@@ -227,7 +227,7 @@ kind:   requirement</code>
     </div>
 
     <div class="callout reveal">
-      <p><strong>2つめの操作が、この仕組みの核心です。</strong>「仕様のほうを書き換えて辻褄を合わせる」「状態を下げて警告を黙らせる」は、生成AIが仕様とコードの両方を書く体制で最も起こりやすい失敗です。<strong>その回避行動自体を <code>D-REGRESS</code> で検出します。</strong></p>
+      <p><strong>2つめの操作が、この仕組みの核心です。</strong>「仕様のほうを書き換えて辻褄を合わせる」「状態を下げて警告が出ないようにする」は、生成AIが仕様とコードの両方を書く体制で最も起こりやすい失敗です。<strong>その回避行動自体を <code>D-REGRESS</code> で検出します。</strong></p>
       <p><strong>そして、検出したらエージェントは整合を取らずに停止し、人へ報告します。</strong>検出スクリプトに <code>--fix</code> にあたる機能はありません。</p>
     </div>
 
@@ -249,7 +249,7 @@ kind:   requirement</code>
 <section>
   <div class="wrap">
     <p class="kicker reveal">Diagrams</p>
-    <h2 class="reveal">設計判断を投影した、動かせる図。</h2>
+    <h2 class="reveal">設計判断を反映した、動かせる図。</h2>
     <p class="section-lede reveal">ADR から機械的に生成した図です。生成のたびに同じ結果になることと、配置や線の重なりを自動で検証しています。ブラウザの中でそのまま動きます — 図と ADR が食い違う場合は、ADR が正です。</p>
 
     <ul class="diagram-note reveal">
@@ -295,7 +295,7 @@ kind:   requirement</code>
       </a>
       <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-auth-verification.html">
         <h3>認証・認可の検証順序</h3>
-        <p>リクエストが PostgreSQL に届くまでに何がどこで検証され、どの失敗がどの分類に落ちるか。</p>
+        <p>リクエストがPostgreSQLに届くまでに何がどこで検証され、どの失敗がどの分類に当てはまるか。</p>
         <span class="go">ADR 0006 / 0007 / 0009 / 0011 / 0012</span>
       </a>
       <a class="card reveal" href="/ai-first-rebuild-lab/docs/diagrams/rebuild-lab-profile-photo-write.html">
@@ -402,7 +402,7 @@ kind:   requirement</code>
     </div>
 
     <div class="callout reveal">
-      <p><strong>開発で使うのは合成データだけです。</strong>メンバー名や写真も、この用途のために作った架空のデータです。実在する人物の情報をローカル環境や CI へ持ち込まないことを、プロジェクトの非交渉事項としています。</p>
+      <p><strong>開発で使うのは合成データだけです。</strong>メンバー名や写真も、この用途のために作った架空のデータです。実在する人物の情報をローカル環境やCIへ持ち込まないことを、プロジェクトの譲れない原則としています。</p>
       <p>AI コーディングエージェントのアカウントが必要です（Claude Code か Codex のどちらか一方）。費用は自己負担になります。</p>
     </div>
   </div>
