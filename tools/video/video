@@ -1,0 +1,18 @@
+#!/bin/sh
+# Use PATH normally; Codex desktop's bundled runtime is a local fallback.
+set -eu
+cd "$(dirname "$0")"
+if ! command -v node >/dev/null 2>&1 || ! command -v pnpm >/dev/null 2>&1; then
+  video_runtime="${HOME}/.cache/codex-runtimes/codex-primary-runtime/dependencies"
+  if [ -x "$video_runtime/node/bin/node" ] && [ -x "$video_runtime/bin/fallback/pnpm" ]; then
+    PATH="$video_runtime/node/bin:$video_runtime/bin/fallback:$PATH"
+    export PATH
+  else
+    echo 'Node.js 24 と pnpm 11.25.0 をPATHへ追加してから再実行してください。' >&2
+    exit 1
+  fi
+fi
+if [ "${1:-}" = install ]; then
+  exec pnpm install --frozen-lockfile --ignore-scripts
+fi
+exec pnpm run "${@:-check}"

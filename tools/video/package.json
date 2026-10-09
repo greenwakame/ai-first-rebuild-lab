@@ -1,0 +1,39 @@
+{
+  "name": "rebuild-lab-video",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "studio": "remotion studio src/index.tsx",
+    "check": "tsc --noEmit && eslint src scripts && node --import tsx scripts/validate.test.ts && node --import tsx scripts/prepare.ts",
+    "render": "node --import tsx scripts/render.ts",
+    "prototype": "node --import tsx scripts/render.ts --prototype",
+    "stills": "node --import tsx scripts/render.ts --stills",
+    "variant": "node --import tsx scripts/variant.ts && node --import tsx scripts/render.ts --input out/variant.json --prototype --name variant",
+    "docs": "node --import tsx scripts/prepare.ts",
+    "verify": "node --import tsx scripts/verify.ts"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.529",
+    "@remotion/cli": "4.0.529",
+    "@remotion/renderer": "4.0.529",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.529",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "@types/react": "19.1.6",
+    "@types/react-dom": "19.1.6",
+    "eslint": "9.28.0",
+    "typescript-eslint": "8.33.1",
+    "tsx": "4.20.3",
+    "typescript": "5.8.3",
+    "sharp": "0.34.2"
+  }
+}

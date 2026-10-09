@@ -1,0 +1,86 @@
+{
+  "title": "ai-first-rebuild-lab",
+  "fps": 60,
+  "width": 1920,
+  "height": 1080,
+  "bpm": 128,
+  "totalBeats": 64,
+  "theme": {
+    "background": "#070c16", "surface": "#0d1729", "text": "#f4f7fb",
+    "muted": "#a8b6cc", "mint": "#3fcf8e", "sky": "#38bdf8",
+    "iris": "#74a0fb", "violet": "#a78bfa", "warning": "#f5bf74"
+  },
+  "assets": {"font": "fonts/NotoSansJP.ttf"},
+  "cta": {
+    "label": "設計図・参加案内へ",
+    "displayUrl": "greenwakame.github.io/ai-first-rebuild-lab",
+    "url": "https://greenwakame.github.io/ai-first-rebuild-lab/",
+    "diagramsUrl": "https://greenwakame.github.io/ai-first-rebuild-lab/docs/diagrams/",
+    "joinUrl": "https://greenwakame.github.io/ai-first-rebuild-lab/#join"
+  },
+  "scenes": [
+    {
+      "id": "legacy", "kind": "problem", "beats": 8, "eyebrow": "REBUILD / 機能単位で",
+      "headline": "レガシーを、作り直す。",
+      "body": "業務システムを、ひとつの機能から。", "note": "",
+      "items": [
+        {"label": "メンバー", "detail": "管理", "role": "neutral"},
+        {"label": "スキル", "detail": "経歴", "role": "neutral"},
+        {"label": "案件", "detail": "現場", "role": "neutral"},
+        {"label": "権限", "detail": "操作", "role": "neutral"}
+      ],
+      "motion": "散在する業務機能を四つの枠へ整理。枠は次のサービス境界へ連続して変形。"
+    },
+    {
+      "id": "boundaries", "kind": "boundaries", "beats": 8, "eyebrow": "DESIGN / 境界を決める",
+      "headline": "まず、設計する。",
+      "body": "業務データの更新は、Rust APIへ。",
+      "note": "代表的な更新経路の概念図（Auth・Storageは省略）",
+      "items": [
+        {"label": "Browser", "detail": "操作", "role": "neutral"},
+        {"label": "Next.js", "detail": "画面・BFF", "role": "neutral"},
+        {"label": "Rust API", "detail": "業務・認可", "role": "neutral"},
+        {"label": "DB", "detail": "PostgreSQL", "role": "neutral"}
+      ],
+      "motion": "四つの境界を奥行きのある枠として展開し、光点を左から右へ受け渡す。"
+    },
+    {
+      "id": "workflow", "kind": "flow", "beats": 16, "eyebrow": "BUILD / 合意を実装へ",
+      "headline": "AIが実装。人が検証。",
+      "body": "完了条件を合意してから、実装へ。", "note": "差分を読み、結果と未確認事項を残す。",
+      "items": [
+        {"label": "Issue", "detail": "完了条件を合意", "role": "human"},
+        {"label": "AI実装", "detail": "実装を生成", "role": "ai"},
+        {"label": "差分確認", "detail": "人が読む", "role": "human"},
+        {"label": "検証", "detail": "人が結果を確認", "role": "human"}
+      ],
+      "roleLabels": {"human": "人", "ai": "AI"},
+      "motion": "同じ枠が工程へ変形。成果物の光点を4拍ずつ受け渡す。人の工程はラベルと形でも明示。"
+    },
+    {
+      "id": "trace", "kind": "trace", "beats": 16, "eyebrow": "VERIFY / つながりを確かめる",
+      "headline": "ズレを検出。判断は、人へ。",
+      "body": "仕様・台帳・実装・テストを結ぶ。", "note": "説明用デモ / 検査は意味の正しさを保証しない",
+      "items": [
+        {"label": "仕様", "detail": "受け入れ条件", "role": "neutral"},
+        {"label": "台帳", "detail": "要求の対応", "role": "neutral"},
+        {"label": "実装", "detail": "要求を参照", "role": "neutral"},
+        {"label": "テスト", "detail": "振る舞いを確認", "role": "neutral"}
+      ],
+      "states": ["要求IDでつなぐ", "仕様だけ変更 → ズレを検出", "停止・報告 → 人が判断"],
+      "motion": "四つの工程を要求の連鎖に変形。仕様側の線が切れ、警告から人の判断へ受け渡す。"
+    },
+    {
+      "id": "principle", "kind": "statement", "beats": 8, "eyebrow": "LEARN / 過程から学ぶ",
+      "headline": "生成だけでは、\n完了しない。",
+      "body": "設計判断と検証の過程を、学ぶ。", "note": "",
+      "motion": "四つの枠を静かな四本の線へ収束。文を大きく保持し、読みの時間をつくる。"
+    },
+    {
+      "id": "invitation", "kind": "closing", "beats": 8, "eyebrow": "AI-FIRST REBUILD LAB",
+      "headline": "AIが実装する。\n人が、確かめる。",
+      "body": "", "note": "",
+      "motion": "線がブランドの四つの印に収束。案内を表示し、最後の2.5秒以上は静止。"
+    }
+  ]
+}
